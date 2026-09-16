@@ -44,7 +44,7 @@ No cambies ninguna de estas elecciones sin preguntar.
 - Fechas en pantalla y en PDF: `dd/mm/aaaa`. Horas: `HH:mm` de 24 h.
 - Zona horaria fija: `America/Argentina/Buenos_Aires`. Guardá `timestamptz` en la base y formateá en la vista.
 - Los internos de equipo se escriben siempre `GDU` + tres dígitos, en mayúscula, sin espacios.
-- Los teléfonos se guardan normalizados a E.164 sin el `+` (ejemplo: `5491155782210`). Con Cloud API el número va `54` + área + número, **sin el `9`** que usaba Baileys.
+- Los teléfonos se guardan normalizados a E.164 sin el `+`: `54` + `9` + área + número (ejemplo: `5491155782210`). **El `9` va siempre**: es lo que marca que es un celular argentino, y sin él el mensaje no llega.
 
 ### PDFs
 

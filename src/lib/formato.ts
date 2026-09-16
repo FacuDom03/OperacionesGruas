@@ -57,17 +57,19 @@ export function normalizarInterno(texto: string): string {
 }
 
 /**
- * Telefono a E.164 sin el "+", que es lo que espera la Cloud API de WhatsApp:
- * 54 + area + numero, **sin** el 9 que usaba Baileys. Ver CLAUDE.md.
+ * Telefono a E.164 sin el "+", que es como los espera la Cloud API:
+ * 54 + 9 + area + numero. El 9 va siempre: es lo que marca que es un celular
+ * argentino, y sin el el mensaje no llega.
  *
- * Devuelve null si no queda un numero argentino completo, y la pantalla pide
+ * Devuelve null si no queda un celular argentino completo, y la pantalla pide
  * cargarlo de nuevo. Es a proposito: un telefono mal guardado no se nota hasta
  * que el mensaje no llega, y para entonces la salida ya se mando.
  *
  * Casos que resuelve:
- *   +54 9 11 5578-2210  ->  541155782210   (saca el 9 de Baileys)
- *   11 5578-2210        ->  541155782210   (agrega el 54)
- *   011 15 5578 2210    ->  null           (el 15 sobra: queda un digito de mas)
+ *   +54 9 11 5578-2210  ->  5491155782210
+ *   11 5578-2210        ->  5491155782210  (agrega el 54 y el 9)
+ *   54 11 5578-2210     ->  5491155782210  (le faltaba el 9)
+ *   011 15 5578 2210    ->  null           (el 15 deja un digito de mas)
  *   15-5578-2210        ->  null           (es el 15 local, falta el area)
  */
 export function normalizarTelefono(texto: string | null | undefined): string | null {
@@ -78,7 +80,7 @@ export function normalizarTelefono(texto: string | null | undefined): string | n
 
   if (digitos.startsWith('00')) digitos = digitos.slice(2)
 
-  // Parte nacional: area + numero, sin el 54 del pais ni el 9 de Baileys.
+  // Parte nacional: area + numero, sin el 54 del pais ni el 9 de celular.
   let nacional: string
   if (digitos.startsWith('54')) {
     nacional = digitos.slice(2)
@@ -92,7 +94,7 @@ export function normalizarTelefono(texto: string | null | undefined): string | n
   if (nacional.startsWith('15')) return null
 
   // Area (2 a 4 digitos) + numero: siempre 10 en total.
-  return nacional.length === 10 ? `54${nacional}` : null
+  return nacional.length === 10 ? `549${nacional}` : null
 }
 
 /** Texto del formulario: recortado, y null si quedo vacio. */

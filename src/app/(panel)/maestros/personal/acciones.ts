@@ -28,7 +28,7 @@ export async function guardarPersona(datos: FormData) {
 
   if (telefonoEscrito && !telefonoWsp) {
     redirect(`${volverA}?error=${encodeURIComponent(
-      'El telefono no quedo en formato de la Cloud API (54 + area + numero, sin el 9 ni el 15). Ejemplo: 541155782210.',
+      'El telefono no quedo en formato de la Cloud API (54 + 9 + area + numero, sin el 15). Ejemplo: 5491155782210.',
     )}`)
   }
 

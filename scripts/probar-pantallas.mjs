@@ -68,7 +68,7 @@ const navegador = await chromium.launch()
   await page.goto(urlPersona)
   await page.fill('input[name=telefonoWsp]', '+54 9 11 5578-2210')
   await Promise.all([page.waitForURL(`${BASE}/maestros/personal`), page.click('form button:has-text("Guardar")')])
-  await esperaTexto(page, '541155782210', `normaliza y guarda el telefono de ${nombre}`)
+  await esperaTexto(page, '5491155782210', `normaliza y guarda el telefono de ${nombre}`)
 
   // Alta de un lugar.
   await page.goto(`${BASE}/maestros/lugares/nuevo`)

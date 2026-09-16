@@ -59,7 +59,7 @@ export default async function EditarPersona({
             etiqueta="Telefono de WhatsApp"
             nombre="telefonoWsp"
             valor={persona?.telefonoWsp}
-            ayuda="54 + area + numero, sin el 9 y sin el 15. Ejemplo: 541155782210"
+            ayuda="54 + 9 + area + numero, sin el 15. Ejemplo: 5491155782210"
           />
 
           <fieldset className="space-y-2 pt-2">

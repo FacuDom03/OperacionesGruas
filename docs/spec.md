@@ -442,7 +442,7 @@ Respondé OK para confirmar recepción.
 
 Variables: 1 fecha · 2 unidad + patente · 3 hora · 4 cliente + OT · 5 lugar y contacto de carga · 6 lugar y contacto de descarga · 7 nombres de la cuadrilla · 8 observaciones de operaciones.
 
-**Nota sobre el formato de número:** con Cloud API los números van como `54` + `11` + número sin el `9` que usaba Baileys. Hay que normalizar a E.164 al cargar los teléfonos en el maestro de personal.
+**Nota sobre el formato de número:** los números van como `54` + `9` + área + número, sin el `+` y sin el `15` (ejemplo: `5491155782210`). El `9` va siempre. Hay que normalizar a E.164 al cargar los teléfonos en el maestro de personal.
 
 ### Webhook de estados
 

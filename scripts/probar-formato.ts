@@ -17,13 +17,14 @@ function comparar(que: string, dio: unknown, esperaba: unknown) {
   console.log(`  ${bien ? 'ok  ' : 'FALLA'} ${que} -> ${dio}${bien ? '' : ` (esperaba ${esperaba})`}`)
 }
 
-console.log('\n  Telefonos (Cloud API: 54 + area + numero, sin el 9 ni el 15)\n')
+console.log('\n  Telefonos (Cloud API: 54 + 9 + area + numero)\n')
 const telefonos: [string, string | null][] = [
-  ['+54 9 11 5578-2210', '541155782210'],  // el formato viejo de Baileys
-  ['5491155782210', '541155782210'],
-  ['541155782210', '541155782210'],        // ya normalizado
-  ['11 5578-2210', '541155782210'],
-  ['221 456-7890', '542214567890'],        // area de 3 digitos
+  ['+54 9 11 5578-2210', '5491155782210'],
+  ['5491155782210', '5491155782210'],      // ya normalizado
+  ['54 11 5578-2210', '5491155782210'],    // le faltaba el 9
+  ['11 5578-2210', '5491155782210'],
+  ['1155782210', '5491155782210'],
+  ['221 456-7890', '5492214567890'],       // area de 3 digitos
   ['011 15 5578 2210', null],              // el 15 deja un digito de mas
   ['15-5578-2210', null],                  // 15 local, sin area: no se adivina
   ['0221 15 456-7890', null],
