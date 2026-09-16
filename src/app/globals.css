@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+/* Paleta sobria, pensada para una pantalla de operaciones que se mira todo el
+   dia: fondo claro, un azul de acento y los colores de estado de las salidas. */
+@theme {
+  --color-fondo: #f5f6f8;
+  --color-panel: #ffffff;
+  --color-borde: #e2e5ea;
+  --color-texto: #1b1f26;
+  --color-tenue: #646c7a;
+  --color-acento: #1d4ed8;
+
+  --color-a-confirmar: #b45309;
+  --color-en-ejecucion: #1d4ed8;
+  --color-finalizado: #15803d;
+  --color-anulado: #9ca3af;
+}
+
+html,
+body {
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Los numeros de las tablas alineados en columna, que es como se leen. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
