@@ -21,6 +21,7 @@ export default async function LayoutPanel({ children }: { children: React.ReactN
 
           <nav className="flex gap-4 text-sm text-[var(--color-tenue)]">
             <Link href="/" className="hover:text-[var(--color-texto)]">Tablero</Link>
+            <Link href="/maestros" className="hover:text-[var(--color-texto)]">Maestros</Link>
           </nav>
 
           <div className="ml-auto flex items-center gap-3 text-sm">
