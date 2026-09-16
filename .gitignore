@@ -6,3 +6,4 @@ storage
 npm-debug.log*
 .DS_Store
 next-env.d.ts
+*.pdf

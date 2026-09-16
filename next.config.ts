@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   output: 'standalone',
 
   // Puppeteer y pg no se empaquetan: se cargan del node_modules del servidor.
-  serverExternalPackages: ['postgres', 'puppeteer-core'],
+  serverExternalPackages: ['postgres', 'puppeteer'],
 
   webpack: (config) => {
     // src/db/index.ts importa './schema.js': extension ESM, que es lo que

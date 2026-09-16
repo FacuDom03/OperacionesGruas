@@ -54,7 +54,20 @@ export default async function Salidas({
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8">
-      <Titulo accion={editable ? <BotonLink href={`/salidas/nueva?fecha=${fecha}`}>Nueva salida</BotonLink> : undefined}>
+      <Titulo
+        accion={
+          <div className="flex items-center gap-2">
+            <a
+              href={`/api/pdf/dia/${fecha}`}
+              target="_blank"
+              className="rounded-md border border-[var(--color-borde)] bg-[var(--color-panel)] px-3 py-2 text-sm hover:bg-[var(--color-fondo)]"
+            >
+              Imprimir parte del dia
+            </a>
+            {editable ? <BotonLink href={`/salidas/nueva?fecha=${fecha}`}>Nueva salida</BotonLink> : null}
+          </div>
+        }
+      >
         Salidas del {formatearFecha(fecha)}
       </Titulo>
 
@@ -82,17 +95,17 @@ export default async function Salidas({
           <Tabla cabeceras={['Numero', 'Hora', 'Unidad', 'Trabajo', 'Empresa', 'OT', 'Carga', 'Descarga', 'Estado']}>
             {filas.map((s) => (
               <Fila key={s.id}>
-                <Celda className="tabular font-medium">
+                <Celda className="tabular whitespace-nowrap font-medium">
                   <Link href={`/salidas/${s.id}`} className="text-[var(--color-acento)] hover:underline">{s.numero}</Link>
                 </Celda>
-                <Celda className="tabular">{formatearHora(s.horaSalida) || <span className="text-[var(--color-tenue)]">—</span>}</Celda>
+                <Celda className="tabular whitespace-nowrap">{formatearHora(s.horaSalida) || <span className="text-[var(--color-tenue)]">—</span>}</Celda>
                 <Celda className="tabular">{s.interno}</Celda>
                 <Celda className="tabular">{s.ordenDia}</Celda>
                 <Celda>{s.empresa}</Celda>
                 <Celda className="tabular">{s.ot ?? <span className="text-[var(--color-tenue)]">—</span>}</Celda>
                 <Celda>{s.lugarCarga ?? <span className="text-[var(--color-tenue)]">—</span>}</Celda>
                 <Celda>{s.lugarDescarga ?? <span className="text-[var(--color-tenue)]">—</span>}</Celda>
-                <Celda className={COLOR_ESTADO[s.estado]}>{NOMBRE_ESTADO[s.estado]}</Celda>
+                <Celda className={`whitespace-nowrap ${COLOR_ESTADO[s.estado]}`}>{NOMBRE_ESTADO[s.estado]}</Celda>
               </Fila>
             ))}
           </Tabla>

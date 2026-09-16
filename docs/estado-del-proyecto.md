@@ -42,20 +42,46 @@ Las reglas del proyecto, en `CLAUDE.md`. Leé los dos antes de tocar código.
 Si te da otra cosa, algo se rompió: no ajustes el script para que los números
 cierren, averiguá por qué cambió.
 
-## Lo que falta
-
 ### Fase 1 — segunda mitad
-- Proyecto Next.js 15 (App Router, TypeScript, Tailwind, shadcn/ui) alrededor de
-  lo que ya está. `next.config.ts` necesita `output: 'standalone'`.
-- Ruta `GET /api/health` que devuelva 200 — el `HEALTHCHECK` del Dockerfile la usa.
-- `src/instrumentation.ts` que aplique las migraciones al arrancar.
-- Auth.js con los cuatro roles y el primer usuario `admin`.
-- ABM de maestros.
-- Alta, edición y listado de salidas de trabajo, con los avisos de solapamiento.
-- PDF de la salida individual y parte del día, con Puppeteer sobre `/print/...`.
+
+- Proyecto Next.js 15 (App Router, TypeScript, Tailwind) con `output: 'standalone'`.
+- `GET /api/health`, que es lo que consulta el `HEALTHCHECK` del Dockerfile.
+- `src/instrumentation.ts` aplica las migraciones al arrancar. Probado contra una
+  base vacía: crea las 15 tablas y en el segundo arranque no reaplica nada.
+- Auth.js con los cuatro roles. Las contraseñas van con `scrypt` de Node, para no
+  sumar una dependencia nativa a la imagen. El primer admin se crea con
+  `npm run usuario`.
+- ABM de personal, equipos, empresas, clientes y lugares, con auditoría de cada
+  escritura, teléfono normalizado a la Cloud API e interno a `GDU` + 3 dígitos.
+- Alta, edición y listado de salidas, con la numeración por secuencia de Postgres
+  (migración `0001`), los avisos de solapamiento y la regla de que una salida
+  finalizada solo la reabre un admin.
+- PDF de la salida individual (`/print/salida/[id]`, una página A4) y parte del
+  día (`/print/dia/[fecha]`, portada más una hoja por salida), con Puppeteer.
+  Se guardan en `PDF_STORAGE_PATH` con el número de salida como nombre.
+
+## Lo que falta
 
 ### Fases 2 a 6
 Ver el capítulo 12 de `docs/spec.md`.
+
+### Pendientes que dejó la fase 1
+
+- **El aviso de solapamiento usa un margen de 2 horas** porque el modelo no tiene
+  hora de regreso: el Excel nunca la tuvo. Si se agrega, el aviso pasa a ser por
+  cruce real de horarios. Está marcado en `src/lib/salidas.ts`.
+- **La numeración puede dejar huecos.** La secuencia de Postgres es lo que evita
+  números repetidos con dos altas a la vez, pero un alta que falla igual consume
+  su número. Si la numeración tiene que ser corrida, hay que resolverlo aparte.
+- **`docs/fuentes/` está en `.dockerignore`**, así que los Excel no viajan en la
+  imagen y el paso 7 de `DEPLOY.md` (correr la importación desde la consola del
+  servicio) no los va a encontrar. Hay que sacarlos del `.dockerignore` o subir
+  los archivos a mano al contenedor.
+- **TypeScript quedó en 5.9 y no en la 7.0.2** de `dependencias.json`: la 7 no
+  expone `ts.sys` ni `transpileModule`, y Next no puede leer `next.config.ts` ni
+  chequear tipos. No afecta a la importación, que corre con `tsx`.
+- El token de las rutas `/print` se marca como usado **en memoria**. Con una sola
+  instancia alcanza; si algún día corren varias, tiene que pasar a la base.
 
 ## Decisiones ya tomadas (no las revisites sin preguntar)
 

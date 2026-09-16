@@ -90,6 +90,8 @@ npm run db:generate    # genera la migración a partir del schema
 npm run db:push        # aplica el schema en desarrollo
 npm run db:studio      # explorador visual de la base
 npm run import:excel   # carga los maestros desde docs/fuentes/
+npm run usuario        # da de alta un usuario: -- --email x@y.com --rol admin
+npm test               # comprueba las normalizaciones de telefono, interno y CUIT
 npm run build          # build de producción
 npm run lint
 ```

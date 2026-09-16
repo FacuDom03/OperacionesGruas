@@ -11,6 +11,18 @@ import { puede, sesionRequerida } from '@/lib/permisos'
 
 export const dynamic = 'force-dynamic'
 
+function BotonPdf({ id }: { id: number }) {
+  return (
+    <a
+      href={`/api/pdf/salida/${id}`}
+      target="_blank"
+      className="rounded-md border border-[var(--color-borde)] bg-[var(--color-panel)] px-3 py-2 text-sm hover:bg-[var(--color-fondo)]"
+    >
+      PDF de la salida
+    </a>
+  )
+}
+
 export default async function EditarSalida({ params }: { params: Promise<{ id: string }> }) {
   const sesion = await sesionRequerida()
   const { id } = await params
@@ -32,7 +44,7 @@ export default async function EditarSalida({ params }: { params: Promise<{ id: s
   if (finalizada || !puedeEditar) {
     return (
       <main className="mx-auto max-w-4xl px-6 py-8">
-        <Titulo>{salida.numero}</Titulo>
+        <Titulo accion={<BotonPdf id={salida.id} />}>{salida.numero}</Titulo>
 
         {finalizada ? (
           <div className="mb-6 rounded-md bg-green-50 px-4 py-3 text-sm text-green-900">
@@ -65,7 +77,7 @@ export default async function EditarSalida({ params }: { params: Promise<{ id: s
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-8">
-      <Titulo>{salida.numero}</Titulo>
+      <Titulo accion={<BotonPdf id={salida.id} />}>{salida.numero}</Titulo>
       <FormularioSalida
         salida={{ ...salida, fecha: salida.fecha }}
         cuadrillaInicial={cuadrilla.map((c) => ({

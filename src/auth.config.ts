@@ -11,7 +11,13 @@ export type Rol = 'admin' | 'operaciones' | 'mantenimiento' | 'consulta'
  *  - el chequeo de estado que usa el HEALTHCHECK de Docker,
  *  - los dos endpoints que consume n8n, que se autentican por x-api-key.
  */
-const PUBLICAS = ['/ingresar', '/api/auth', '/api/health', '/api/checklists', '/api/envios']
+const PUBLICAS = [
+  '/ingresar', '/api/auth', '/api/health', '/api/checklists', '/api/envios',
+  // /print se fija por su cuenta: acepta sesion o el token de un solo uso que
+  // usa Puppeteer. No se puede resolver aca porque el middleware corre en el
+  // edge y la firma del token se verifica del lado de Node.
+  '/print',
+]
 
 /**
  * Configuracion compartida entre el middleware (que corre en el edge y no puede

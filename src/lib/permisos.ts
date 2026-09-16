@@ -48,3 +48,15 @@ export async function permisoRequerido(accion: Accion) {
   }
   return sesion
 }
+
+/**
+ * Acceso a las rutas /print: sesion valida, o el token de un solo uso que usa
+ * Puppeteer para armar el PDF. Nunca quedan publicas (CLAUDE.md).
+ */
+export async function accesoDeImpresion(ruta: string, token: string | undefined) {
+  const { tokenDeImpresionValido } = await import('@/lib/token-impresion')
+  if (tokenDeImpresionValido(token, ruta)) return
+
+  const sesion = await auth()
+  if (!sesion?.user) redirect('/ingresar')
+}
