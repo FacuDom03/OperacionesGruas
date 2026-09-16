@@ -1,0 +1,30 @@
+# Postgres para desarrollo local, nada mas.
+# En produccion la base la maneja EasyPanel: este archivo no se despliega.
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#   docker compose -f docker-compose.dev.yml down
+#
+# Escucha en el 5433 para no chocar con otro Postgres que tengas en el 5432.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: central-operativa-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: central
+      POSTGRES_PASSWORD: central
+      POSTGRES_DB: central_operativa
+      TZ: America/Argentina/Buenos_Aires
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U central -d central_operativa"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
