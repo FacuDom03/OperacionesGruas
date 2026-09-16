@@ -29,6 +29,12 @@ async function entrar(page, email, password) {
   await Promise.all([page.waitForURL(`${BASE}/`), page.click('form button:has-text("Entrar")')])
 }
 
+/** Hora de Buenos Aires ahora, para que la prueba no dependa de cuando se corra. */
+const ahora = new Intl.DateTimeFormat('es-AR', {
+  timeZone: 'America/Argentina/Buenos_Aires',
+  hour: '2-digit', minute: '2-digit', hour12: false,
+}).format(new Date())
+
 const nav = await chromium.launch()
 const ctx = await nav.newContext()
 const page = await ctx.newPage()
@@ -45,7 +51,7 @@ await page.waitForTimeout(500)
 const fila = page.locator('form').filter({ hasText: 'GDU001' }).first()
 await fila.locator('select[name=personalId]').selectOption({ index: 1 })
 await fila.locator('input[name=lugarSalida]').fill('Base')
-await fila.locator('input[name=horaSalida]').fill('07:30')
+await fila.locator('input[name=horaSalida]').fill(ahora)
 await fila.locator('input[name=uso]').fill('tramites')
 await fila.locator('select[name=estado]').selectOption('en_uso')
 await fila.locator('button:has-text("Guardar")').click()

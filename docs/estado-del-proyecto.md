@@ -87,6 +87,9 @@ estados. El orden queda: **4 (checklists) → 5 (calendario y tablero) → 6 (ci
 - **La numeración puede dejar huecos.** La secuencia de Postgres es lo que evita
   números repetidos con dos altas a la vez, pero un alta que falla igual consume
   su número. Si la numeración tiene que ser corrida, hay que resolverlo aparte.
+- **`src/db/index.ts` abre la conexión recién cuando se usa.** Antes tiraba el
+  error al importarse, y eso rompía `next build` dentro del Dockerfile, donde no
+  hay `.env`. No hace falta pasarle una `DATABASE_URL` al build.
 - **`docs/fuentes/` está en `.dockerignore`**, así que los Excel no viajan en la
   imagen y el paso 7 de `DEPLOY.md` (correr la importación desde la consola del
   servicio) no los va a encontrar. Hay que sacarlos del `.dockerignore` o subir

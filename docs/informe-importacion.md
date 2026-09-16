@@ -1,6 +1,6 @@
 # Informe de importación
 
-Generado el 16/9/2026, 03:26:00.
+Generado el 16/9/2026, 07:46:37.
 
 ## Filas cargadas
 
