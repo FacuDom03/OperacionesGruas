@@ -8,7 +8,10 @@ import { crearTokenDeImpresion } from '@/lib/token-impresion'
  * Asi el PDF sale igual a lo que se ve en pantalla y no hay dos maquetados
  * que mantener (capitulo 7 del spec).
  */
-export async function pdfDeRuta(ruta: string): Promise<Buffer> {
+export async function pdfDeRuta(
+  ruta: string,
+  opciones: { horizontal?: boolean } = {},
+): Promise<Buffer> {
   // Se pide a si misma por loopback: no hace falta salir a internet ni que el
   // dominio publico resuelva desde adentro del contenedor.
   const base = `http://127.0.0.1:${process.env.PORT ?? 3000}`
@@ -27,6 +30,7 @@ export async function pdfDeRuta(ruta: string): Promise<Buffer> {
     return Buffer.from(
       await pagina.pdf({
         format: 'A4',
+        landscape: opciones.horizontal ?? false,
         printBackground: true,
         margin: { top: '12mm', right: '10mm', bottom: '12mm', left: '10mm' },
       }),

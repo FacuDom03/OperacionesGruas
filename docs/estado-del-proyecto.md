@@ -60,10 +60,24 @@ cierren, averiguá por qué cambió.
   día (`/print/dia/[fecha]`, portada más una hoja por salida), con Puppeteer.
   Se guardan en `PDF_STORAGE_PATH` con el número de salida como nombre.
 
+### Fase 3 — vehículos livianos
+
+- Grilla del día editable en línea (`/livianos`), una fila por unidad liviana.
+  Cada fila se guarda sola, así un error en una no pierde lo cargado en el resto.
+- Alerta cuando una unidad lleva más de 12 h sin hora de regreso, arriba y en la
+  propia fila.
+- PDF del día y del mes, los dos en horizontal porque la grilla tiene diez
+  columnas. El del mes lleva una página por día más los totales por unidad.
+- Reemplaza el GD 208.
+
 ## Lo que falta
 
-### Fases 2 a 6
-Ver el capítulo 12 de `docs/spec.md`.
+### El orden cambió: WhatsApp va último
+
+La fase 2 del spec (WhatsApp) pasa al final, por decisión del 16/09. El flujo de
+n8n lo configura la empresa; de la app salen el POST al webhook y el endpoint de
+estados. El orden queda: **4 (checklists) → 5 (calendario y tablero) → 6 (cierre)
+→ 2 (WhatsApp)**. No lo "corrijas" al orden del capítulo 12 del spec.
 
 ### Pendientes que dejó la fase 1
 
@@ -82,6 +96,9 @@ Ver el capítulo 12 de `docs/spec.md`.
   chequear tipos. No afecta a la importación, que corre con `tsx`.
 - El token de las rutas `/print` se marca como usado **en memoria**. Con una sola
   instancia alcanza; si algún día corren varias, tiene que pasar a la base.
+- **`uso_livianos` no tiene un único por (fecha, unidad)**, así que una unidad
+  puede tener más de un movimiento en el día. La grilla lo soporta; si operaciones
+  prefiere una sola fila por día, hay que agregar la restricción.
 
 ## Decisiones ya tomadas (no las revisites sin preguntar)
 

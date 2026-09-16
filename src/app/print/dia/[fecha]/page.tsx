@@ -3,8 +3,8 @@ import { db } from '@/db'
 import { empresas, equipos, salidas } from '@/db/schema'
 import { HojaDeSalida } from '@/components/hoja-salida'
 import { formatearFecha, formatearHora } from '@/lib/formato'
+import { datosDeSalida } from '@/lib/consultas-salidas'
 import { accesoDeImpresion } from '@/lib/permisos'
-import { datosDeSalida } from '../../salida/[id]/page'
 
 export const dynamic = 'force-dynamic'
 
