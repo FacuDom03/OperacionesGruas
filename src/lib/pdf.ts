@@ -10,12 +10,15 @@ import { crearTokenDeImpresion } from '@/lib/token-impresion'
  */
 export async function pdfDeRuta(
   ruta: string,
-  opciones: { horizontal?: boolean } = {},
+  opciones: { horizontal?: boolean; consulta?: string } = {},
 ): Promise<Buffer> {
   // Se pide a si misma por loopback: no hace falta salir a internet ni que el
   // dominio publico resuelva desde adentro del contenedor.
   const base = `http://127.0.0.1:${process.env.PORT ?? 3000}`
-  const url = `${base}${ruta}?token=${crearTokenDeImpresion(ruta)}`
+  // El token firma la ruta; lo que venga en `consulta` son solo filtros de
+  // presentacion, y para usarlos igual hace falta un token valido.
+  const extra = opciones.consulta ? `&${opciones.consulta.replace(/^\?/, '')}` : ''
+  const url = `${base}${ruta}?token=${crearTokenDeImpresion(ruta)}${extra}`
 
   const navegador = await puppeteer.launch({
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,

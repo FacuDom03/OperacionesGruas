@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { SelectorEmpresas } from '@/components/selector-empresas'
 import { signOut } from '@/auth'
 import { sesionRequerida } from '@/lib/permisos'
 
@@ -27,6 +28,7 @@ export default async function LayoutPanel({ children }: { children: React.ReactN
           </nav>
 
           <div className="ml-auto flex items-center gap-3 text-sm">
+            <SelectorEmpresas />
             <span className="text-[var(--color-tenue)]">
               {sesion.user.email} · {sesion.user.rol}
             </span>

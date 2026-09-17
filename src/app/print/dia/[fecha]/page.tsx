@@ -1,4 +1,4 @@
-import { asc, eq } from 'drizzle-orm'
+import { and, asc, eq, inArray } from 'drizzle-orm'
 import { db } from '@/db'
 import { empresas, equipos, salidas } from '@/db/schema'
 import { HojaDeSalida } from '@/components/hoja-salida'
@@ -21,12 +21,18 @@ export default async function ImprimirDia({
   searchParams,
 }: {
   params: Promise<{ fecha: string }>
-  searchParams: Promise<{ token?: string }>
+  searchParams: Promise<{ token?: string; empresas?: string }>
 }) {
   const { fecha } = await params
-  const { token } = await searchParams
+  const { token, empresas: empresasPedidas } = await searchParams
 
   await accesoDeImpresion(`/print/dia/${fecha}`, token)
+
+  // Mismo filtro que la pantalla: el parte sale con lo que el usuario esta viendo.
+  const elegidas = empresasPedidas
+    ?.split(',')
+    .map(Number)
+    .filter((n) => Number.isInteger(n) && n > 0)
 
   const resumen = await db
     .select({
@@ -42,7 +48,12 @@ export default async function ImprimirDia({
     .from(salidas)
     .innerJoin(equipos, eq(salidas.equipoId, equipos.id))
     .innerJoin(empresas, eq(salidas.empresaId, empresas.id))
-    .where(eq(salidas.fecha, fecha))
+    .where(
+      and(
+        eq(salidas.fecha, fecha),
+        elegidas && elegidas.length > 0 ? inArray(salidas.empresaId, elegidas) : undefined,
+      ),
+    )
     .orderBy(asc(salidas.horaSalida), asc(equipos.interno), asc(salidas.ordenDia))
 
   const hojas = await Promise.all(resumen.map((s) => datosDeSalida(s.id)))

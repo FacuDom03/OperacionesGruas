@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { and, asc, eq } from 'drizzle-orm'
+import { and, asc, eq, inArray } from 'drizzle-orm'
 import { db } from '@/db'
 import { empresas, equipos, salidas } from '@/db/schema'
 import { BotonLink, Celda, Fila, Panel, Tabla, Titulo, Vacio } from '@/components/ui'
+import { empresasElegidas } from '@/lib/empresas-elegidas'
 import { formatearFecha, formatearHora, hoy } from '@/lib/formato'
 import { puede, sesionRequerida } from '@/lib/permisos'
 
@@ -31,6 +32,9 @@ export default async function Salidas({
   const { fecha: fechaBuscada, guardada } = await searchParams
   const fecha = fechaBuscada ?? hoy()
 
+  // Si el usuario eligio empresas en la cabecera, solo ve las de esas.
+  const elegidas = await empresasElegidas()
+
   const filas = await db
     .select({
       id: salidas.id,
@@ -47,7 +51,12 @@ export default async function Salidas({
     .from(salidas)
     .innerJoin(equipos, eq(salidas.equipoId, equipos.id))
     .innerJoin(empresas, eq(salidas.empresaId, empresas.id))
-    .where(and(eq(salidas.fecha, fecha)))
+    .where(
+      and(
+        eq(salidas.fecha, fecha),
+        elegidas ? inArray(salidas.empresaId, elegidas) : undefined,
+      ),
+    )
     .orderBy(asc(salidas.horaSalida), asc(equipos.interno), asc(salidas.ordenDia))
 
   const editable = puede(sesion.user.rol, 'editar_salidas')
@@ -58,7 +67,7 @@ export default async function Salidas({
         accion={
           <div className="flex items-center gap-2">
             <a
-              href={`/api/pdf/dia/${fecha}`}
+              href={`/api/pdf/dia/${fecha}${elegidas ? `?empresas=${elegidas.join(',')}` : ''}`}
               target="_blank"
               className="rounded-md border border-[var(--color-borde)] bg-[var(--color-panel)] px-3 py-2 text-sm hover:bg-[var(--color-fondo)]"
             >
@@ -113,7 +122,8 @@ export default async function Salidas({
       </Panel>
 
       <p className="mt-4 text-sm text-[var(--color-tenue)]">
-        {filas.length} {filas.length === 1 ? 'salida' : 'salidas'} ese dia.
+        {filas.length} {filas.length === 1 ? 'salida' : 'salidas'} ese dia
+        {elegidas ? ' en las empresas elegidas' : ''}.
       </p>
     </main>
   )
