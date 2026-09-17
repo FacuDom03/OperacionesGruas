@@ -49,6 +49,11 @@ COPY --from=builder --chown=app:app /app/.next/static ./.next/static
 # SQL de las migraciones: las aplica la app al arrancar, desde src/instrumentation.ts
 COPY --from=builder --chown=app:app /app/drizzle ./drizzle
 
+# Importador de maestros ya compilado a JS, con los dos Excel. Sin esto, el paso
+# 7 de DEPLOY.md no tiene con que correr: la imagen no lleva ni tsx ni scripts/.
+COPY --from=builder --chown=app:app /app/dist/importar-excel.js ./scripts/importar-excel.js
+COPY --from=builder --chown=app:app /app/docs/fuentes ./docs/fuentes
+
 # Carpeta de los PDF generados. Montar un volumen aca en EasyPanel.
 RUN mkdir -p /app/storage/pdf && chown -R app:app /app/storage
 

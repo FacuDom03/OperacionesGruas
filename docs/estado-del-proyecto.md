@@ -90,10 +90,14 @@ estados. El orden queda: **4 (checklists) → 5 (calendario y tablero) → 6 (ci
 - **`src/db/index.ts` abre la conexión recién cuando se usa.** Antes tiraba el
   error al importarse, y eso rompía `next build` dentro del Dockerfile, donde no
   hay `.env`. No hace falta pasarle una `DATABASE_URL` al build.
-- **`docs/fuentes/` está en `.dockerignore`**, así que los Excel no viajan en la
-  imagen y el paso 7 de `DEPLOY.md` (correr la importación desde la consola del
-  servicio) no los va a encontrar. Hay que sacarlos del `.dockerignore` o subir
-  los archivos a mano al contenedor.
+- ~~`docs/fuentes/` está en `.dockerignore`~~ **Resuelto el 17/09.** El build
+  compila el importador a `dist/importar-excel.js` con esbuild, y la imagen se
+  lleva ese archivo más los dos Excel. En el servidor, la importación se corre
+  una vez desde la consola del servicio:
+
+  ```bash
+  node scripts/importar-excel.js
+  ```
 - **TypeScript quedó en 5.9 y no en la 7.0.2** de `dependencias.json`: la 7 no
   expone `ts.sys` ni `transpileModule`, y Next no puede leer `next.config.ts` ni
   chequear tipos. No afecta a la importación, que corre con `tsx`.

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run build:importador",
+    "build:importador": "esbuild scripts/importar-excel.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/importar-excel.js --banner:js=\"import{createRequire as __crearRequire}from'node:module';const require=__crearRequire(import.meta.url);\"",
     "start": "next start",
     "lint": "next lint",
     "test": "tsx scripts/probar-formato.ts",

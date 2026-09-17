@@ -6,7 +6,6 @@ node_modules
 .env.*
 !.env.example
 npm-debug.log*
-docs/fuentes
 storage
 *.md
 !CLAUDE.md
