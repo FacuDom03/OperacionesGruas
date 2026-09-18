@@ -70,14 +70,25 @@ cierren, averiguá por qué cambió.
   columnas. El del mes lleva una página por día más los totales por unidad.
 - Reemplaza el GD 208.
 
+### Diseño y calendario
+
+- Las pantallas siguen el mockup del canvas: Barlow Condensed en títulos, IBM
+  Plex Sans en texto, IBM Plex Mono en los datos, y la paleta con los valores
+  exactos. El sistema vive en `src/app/globals.css` y `src/components/ui.tsx`.
+- Selector de empresa en la barra: filtra las salidas (y el PDF del parte del
+  día). Los equipos y el personal no se filtran porque las unidades son de uso
+  compartido del grupo.
+- Fase 5 — calendario de trabajos (`/calendario`) con vistas mes, semana y día,
+  color por tipo de unidad y borde punteado para las salidas a confirmar.
+
 ## Lo que falta
 
 ### El orden cambió: WhatsApp va último
 
 La fase 2 del spec (WhatsApp) pasa al final, por decisión del 16/09. El flujo de
 n8n lo configura la empresa; de la app salen el POST al webhook y el endpoint de
-estados. El orden queda: **4 (checklists) → 5 (calendario y tablero) → 6 (cierre)
-→ 2 (WhatsApp)**. No lo "corrijas" al orden del capítulo 12 del spec.
+estados. El orden queda: **4 (checklists) → 6 (cierre) → 2 (WhatsApp)**. La 5
+(calendario) ya está hecha. No lo "corrijas" al orden del capítulo 12 del spec.
 
 ### Pendientes que dejó la fase 1
 
@@ -101,6 +112,9 @@ estados. El orden queda: **4 (checklists) → 5 (calendario y tablero) → 6 (ci
 - **TypeScript quedó en 5.9 y no en la 7.0.2** de `dependencias.json`: la 7 no
   expone `ts.sys` ni `transpileModule`, y Next no puede leer `next.config.ts` ni
   chequear tipos. No afecta a la importación, que corre con `tsx`.
+- Del tablero del mockup faltan tres bloques que dependen de datos que todavía
+  no existen: «Checklists pendientes», los contadores de checklists y «Guardia
+  de hoy». Entran con la fase 4 y con la carga de guardias.
 - El token de las rutas `/print` se marca como usado **en memoria**. Con una sola
   instancia alcanza; si algún día corren varias, tiene que pasar a la base.
 - **`uso_livianos` no tiene un único por (fecha, unidad)**, así que una unidad

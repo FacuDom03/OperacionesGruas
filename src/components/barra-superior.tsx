@@ -22,18 +22,21 @@ export function BarraSuperior({
   salir: () => Promise<void>
 }) {
   return (
-    <header className="flex h-14 flex-shrink-0 items-center gap-8 bg-[var(--color-barra)] px-6 text-[var(--color-barra-texto)]">
-      <Link href="/" className="flex items-baseline gap-2.5 hover:opacity-90">
+    <header className="flex h-14 flex-shrink-0 items-center gap-6 overflow-x-auto bg-[var(--color-barra)] px-6 text-[var(--color-barra-texto)]">
+      <Link href="/" className="flex flex-shrink-0 items-baseline gap-2.5 whitespace-nowrap hover:opacity-90">
         <span className="hdg text-[19px] font-bold text-[var(--color-marca)]">Grupo Daniele</span>
-        <span className="hdg text-[15px] font-medium text-[#9aa1ab]">Central Operativa</span>
+        <span className="hdg hidden text-[15px] font-medium text-[#9aa1ab] xl:inline">Central Operativa</span>
       </Link>
 
       <Navegacion />
 
-      <div className="flex items-center gap-3 text-[13px] text-[var(--color-apagado)]">
+      <div className="flex flex-shrink-0 items-center gap-3 whitespace-nowrap text-[13px] text-[var(--color-apagado)]">
         <SelectorEmpresas />
 
-        <span className="hidden sm:inline">{email}</span>
+        {/* Solo el usuario y recortado: el correo entero desbordaba la barra. */}
+        <span className="hidden max-w-[150px] truncate lg:inline" title={email}>
+          {email.split('@')[0]}
+        </span>
 
         <form action={salir}>
           <button

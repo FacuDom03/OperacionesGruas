@@ -36,13 +36,14 @@ export async function SelectorEmpresas() {
 
   return (
     <details className="relative">
-      <summary className="cursor-pointer list-none rounded-md border border-[var(--color-borde)] px-3 py-1.5 text-sm hover:bg-[var(--color-fondo)]">
-        {resumen} <span className="text-[var(--color-tenue)]">▾</span>
+      <summary className="cursor-pointer list-none whitespace-nowrap rounded-[5px] border border-[#3a3f48] px-3 py-1.5 text-[13px] hover:bg-[var(--color-barra-activo)]">
+        Empresa: <span className="font-semibold text-white">{resumen}</span>{' '}
+        <span className="text-[var(--color-apagado)]">▾</span>
       </summary>
 
       <form
         action={aplicar}
-        className="absolute right-0 z-10 mt-1 w-72 rounded-lg border border-[var(--color-borde)] bg-[var(--color-panel)] p-3 shadow-lg"
+        className="absolute right-0 z-20 mt-1 w-72 rounded-[5px] border border-[var(--color-borde)] bg-[var(--color-panel)] p-3 text-[var(--color-texto)] shadow-lg"
       >
         <p className="mb-2 text-xs text-[var(--color-tenue)]">
           Con que empresas trabajar. Filtra las salidas; los equipos y el personal
