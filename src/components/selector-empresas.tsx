@@ -30,7 +30,7 @@ export async function SelectorEmpresas() {
 
   const nombres = lista.filter((e) => elegidas?.includes(e.id)).map((e) => e.nombreCorto)
   const resumen =
-    !elegidas ? 'Todas las empresas'
+    !elegidas ? `Todas (${lista.length})`
       : nombres.length === 1 ? nombres[0]
         : `${nombres.length} empresas`
 
@@ -43,7 +43,7 @@ export async function SelectorEmpresas() {
 
       <form
         action={aplicar}
-        className="absolute right-0 z-20 mt-1 w-72 rounded-[5px] border border-[var(--color-borde)] bg-[var(--color-panel)] p-3 text-[var(--color-texto)] shadow-lg"
+        className="absolute right-0 z-30 mt-1 w-72 whitespace-normal rounded-[5px] border border-[var(--color-borde)] bg-[var(--color-panel)] p-3 text-[var(--color-texto)] shadow-lg"
       >
         <p className="mb-2 text-xs text-[var(--color-tenue)]">
           Con que empresas trabajar. Filtra las salidas; los equipos y el personal

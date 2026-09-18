@@ -50,7 +50,8 @@ ok(`dos salidas cargadas: ${empresas.join(' y ')}`)
 await page.goto(`${BASE}/salidas?fecha=${FECHA}`)
 let cuerpo = await page.textContent('body')
 cuerpo.includes('2 salidas') ? ok('sin filtro se ven las dos') : fallo('sin filtro', cuerpo.match(/\d+ salidas?/)?.[0])
-cuerpo.includes('Todas las empresas') ? ok('la cabecera dice "Todas las empresas"') : fallo('falta el selector')
+const dice = /Empresa:\s*Todas \(\d+\)/.test(cuerpo)
+dice ? ok('la cabecera dice "Todas (N)"') : fallo('falta el selector')
 
 // Elegir solo la primera empresa.
 await page.click('summary')

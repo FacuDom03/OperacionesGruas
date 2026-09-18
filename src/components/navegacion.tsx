@@ -17,7 +17,7 @@ export function Navegacion() {
   const ruta = usePathname()
 
   return (
-    <nav className="flex flex-grow items-center gap-0.5">
+    <nav className="flex min-w-0 flex-grow items-center gap-0.5 overflow-x-auto">
       {SECCIONES.map((s) => {
         const activa = s.href === '/' ? ruta === '/' : ruta.startsWith(s.href)
         return (

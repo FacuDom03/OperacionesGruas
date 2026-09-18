@@ -22,10 +22,10 @@ export function BarraSuperior({
   salir: () => Promise<void>
 }) {
   return (
-    <header className="flex h-14 flex-shrink-0 items-center gap-6 overflow-x-auto bg-[var(--color-barra)] px-6 text-[var(--color-barra-texto)]">
+    <header className="relative z-20 flex h-14 flex-shrink-0 items-center gap-4 bg-[var(--color-barra)] px-6 text-[var(--color-barra-texto)]">
       <Link href="/" className="flex flex-shrink-0 items-baseline gap-2.5 whitespace-nowrap hover:opacity-90">
         <span className="hdg text-[19px] font-bold text-[var(--color-marca)]">Grupo Daniele</span>
-        <span className="hdg hidden text-[15px] font-medium text-[#9aa1ab] xl:inline">Central Operativa</span>
+        <span className="hdg hidden text-[15px] font-medium text-[#9aa1ab] 2xl:inline">Central Operativa</span>
       </Link>
 
       <Navegacion />
@@ -34,7 +34,7 @@ export function BarraSuperior({
         <SelectorEmpresas />
 
         {/* Solo el usuario y recortado: el correo entero desbordaba la barra. */}
-        <span className="hidden max-w-[150px] truncate lg:inline" title={email}>
+        <span className="hidden max-w-[150px] truncate xl:inline" title={email}>
           {email.split('@')[0]}
         </span>
 
