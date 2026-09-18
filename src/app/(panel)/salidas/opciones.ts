@@ -17,7 +17,8 @@ export async function opcionesDeSalida() {
       texto: [e.interno, e.marca, e.modelo].filter(Boolean).join(' · '),
     })),
     empresas: listaEmpresas.map((e) => ({ valor: e.id, texto: e.nombreCorto })),
-    clientes: listaClientes.map((c) => ({ valor: c.id, texto: c.razonSocial })),
+    // Nombres, no ids: el campo de cliente es de texto libre con sugerencias.
+    clientes: listaClientes.map((c) => c.razonSocial),
     personal: listaPersonal.map((p) => ({ valor: p.id, texto: p.apellidoNombre })),
     verificadores: listaPersonal.filter((p) => p.esVerificador).map((p) => ({ valor: p.id, texto: p.apellidoNombre })),
     operadores: listaPersonal.filter((p) => p.esOperador).map((p) => ({ valor: p.id, texto: p.apellidoNombre })),

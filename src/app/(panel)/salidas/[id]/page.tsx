@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { salidaPersonal, salidas } from '@/db/schema'
+import { clientes, salidaPersonal, salidas } from '@/db/schema'
 import { reabrirSalida } from '../acciones'
 import { FormularioSalida } from '../formulario'
 import { opcionesDeSalida } from '../opciones'
@@ -30,9 +30,12 @@ export default async function EditarSalida({ params }: { params: Promise<{ id: s
   const [salida] = await db.select().from(salidas).where(eq(salidas.id, Number(id))).limit(1)
   if (!salida) notFound()
 
-  const [cuadrilla, opciones] = await Promise.all([
+  const [cuadrilla, opciones, cliente] = await Promise.all([
     db.select().from(salidaPersonal).where(eq(salidaPersonal.salidaId, salida.id)),
     opcionesDeSalida(),
+    salida.clienteId
+      ? db.select().from(clientes).where(eq(clientes.id, salida.clienteId)).limit(1).then((r) => r[0] ?? null)
+      : Promise.resolve(null),
   ])
 
   const finalizada = salida.estado === 'finalizado'
@@ -79,7 +82,7 @@ export default async function EditarSalida({ params }: { params: Promise<{ id: s
     <main className="mx-auto max-w-4xl px-6 py-8">
       <Titulo accion={<BotonPdf id={salida.id} />}>{salida.numero}</Titulo>
       <FormularioSalida
-        salida={{ ...salida, fecha: salida.fecha }}
+        salida={{ ...salida, fecha: salida.fecha, cliente: cliente?.razonSocial ?? null }}
         cuadrillaInicial={cuadrilla.map((c) => ({
           personalId: c.personalId,
           rol: c.rol,

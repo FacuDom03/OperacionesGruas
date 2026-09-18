@@ -70,6 +70,16 @@ cierren, averiguá por qué cambió.
   columnas. El del mes lleva una página por día más los totales por unidad.
 - Reemplaza el GD 208.
 
+### Fase 4 — checklists (lado de la app)
+
+- `POST /api/checklists` autenticado por `x-api-key`, listo para que n8n lo
+  llame. Resuelve la unidad por interno y la persona por teléfono, guarda ítems
+  y adjuntos, y deja el JSON crudo en `checklists.payload`. Idempotente por
+  (fecha, equipo).
+- Pantalla `/checklists` con contadores, lista del día y detalle, y el marcado
+  como revisado para mantenimiento y admin.
+- **n8n todavía no está conectado**: el flujo lo arma la empresa.
+
 ### Diseño y calendario
 
 - Las pantallas siguen el mockup del canvas: Barlow Condensed en títulos, IBM
@@ -87,8 +97,8 @@ cierren, averiguá por qué cambió.
 
 La fase 2 del spec (WhatsApp) pasa al final, por decisión del 16/09. El flujo de
 n8n lo configura la empresa; de la app salen el POST al webhook y el endpoint de
-estados. El orden queda: **4 (checklists) → 6 (cierre) → 2 (WhatsApp)**. La 5
-(calendario) ya está hecha. No lo "corrijas" al orden del capítulo 12 del spec.
+estados. El orden queda: **6 (cierre) → 2 (WhatsApp)**. La 4 (checklists, lado app) y la
+5 (calendario) ya están hechas. No lo "corrijas" al orden del capítulo 12 del spec.
 
 ### Pendientes que dejó la fase 1
 
@@ -112,9 +122,13 @@ estados. El orden queda: **4 (checklists) → 6 (cierre) → 2 (WhatsApp)**. La 
 - **TypeScript quedó en 5.9 y no en la 7.0.2** de `dependencias.json`: la 7 no
   expone `ts.sys` ni `transpileModule`, y Next no puede leer `next.config.ts` ni
   chequear tipos. No afecta a la importación, que corre con `tsx`.
-- Del tablero del mockup faltan tres bloques que dependen de datos que todavía
-  no existen: «Checklists pendientes», los contadores de checklists y «Guardia
-  de hoy». Entran con la fase 4 y con la carga de guardias.
+- Del tablero del mockup falta un bloque: «Guardia de hoy», que necesita que se
+  carguen las guardias (la tabla existe, pero no hay pantalla ni datos).
+- **El cliente de la salida es de texto libre con sugerencias.** Lo que se
+  escribe y no está en el maestro se da de alta al guardar, comparando sin
+  distinguir mayúsculas ni espacios de más. Si algún día hace falta un cliente
+  de una sola vez que no ensucie el maestro, habría que agregar una columna de
+  texto en `salidas`.
 - El token de las rutas `/print` se marca como usado **en memoria**. Con una sola
   instancia alcanza; si algún día corren varias, tiene que pasar a la base.
 - **`uso_livianos` no tiene un único por (fecha, unidad)**, así que una unidad

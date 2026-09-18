@@ -9,6 +9,7 @@ import { auditar } from '@/lib/auditoria'
 import { mensajeDeError } from '@/lib/errores'
 import { textoONulo } from '@/lib/formato'
 import { permisoRequerido } from '@/lib/permisos'
+import { clientePorNombre } from '@/lib/clientes'
 import { avisosDeSolapamiento, proximoNumero } from '@/lib/salidas'
 
 export type EstadoFormulario = {
@@ -115,13 +116,16 @@ export async function guardarSalida(
     return conDatos({ avisos })
   }
 
+  // El cliente viene como texto: se busca en el maestro y si no está, se crea.
+  const cliente = await clientePorNombre(textoONulo(datos.get('cliente')))
+
   const valores = {
     fecha,
     ordenDia,
     equipoId,
     equipoAuxId: Number(datos.get('equipoAuxId')) || null,
     empresaId,
-    clienteId: Number(datos.get('clienteId')) || null,
+    clienteId: cliente?.id ?? null,
     ot: textoONulo(datos.get('ot')),
     remito: textoONulo(datos.get('remito')),
     horaSalida,

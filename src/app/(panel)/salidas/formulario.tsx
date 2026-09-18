@@ -14,7 +14,7 @@ export type SalidaEnFormulario = {
   equipoId: number
   equipoAuxId: number | null
   empresaId: number
-  clienteId: number | null
+  cliente: string | null
   ot: string | null
   remito: string | null
   horaSalida: string | null
@@ -93,7 +93,7 @@ export function FormularioSalida({
   hoy: string
   equipos: Opcion[]
   empresas: Opcion[]
-  clientes: Opcion[]
+  clientes: string[]
   personal: Opcion[]
   verificadores: Opcion[]
   operadores: Opcion[]
@@ -176,10 +176,21 @@ export function FormularioSalida({
           </Campo>
 
           <Campo etiqueta="Cliente">
-            <select name="clienteId" defaultValue={previo('clienteId') ?? salida?.clienteId ?? ''} className={entrada}>
-              <option value="">Sin cliente</option>
-              {clientes.map((c) => <option key={c.valor} value={c.valor}>{c.texto}</option>)}
-            </select>
+            {/* Texto libre con sugerencias: se puede elegir uno del maestro o
+                escribir uno nuevo, que se da de alta al guardar. */}
+            <input
+              name="cliente"
+              list="clientes-conocidos"
+              defaultValue={previo('cliente') ?? salida?.cliente ?? ''}
+              placeholder="Escribí o elegí de la lista"
+              className={entrada}
+            />
+            <datalist id="clientes-conocidos">
+              {clientes.map((c) => <option key={c} value={c} />)}
+            </datalist>
+            <span className="mt-1 block text-[11px] text-[var(--color-tenue)]">
+              Si no está en la lista, se agrega al maestro al guardar.
+            </span>
           </Campo>
         </div>
 
