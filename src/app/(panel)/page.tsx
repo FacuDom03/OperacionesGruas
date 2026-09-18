@@ -3,6 +3,7 @@ import { and, asc, count, eq, inArray, isNull, ne } from 'drizzle-orm'
 import { db } from '@/db'
 import { empresas, equipos, personal, salidaPersonal, salidas, usoLivianos } from '@/db/schema'
 import { BotonLink, Celda, Etiqueta, Fila, Panel, SinDato, Tabla, Tarjeta, Titulo, Vacio } from '@/components/ui'
+import { resumenDelDia } from '@/lib/consultas-checklists'
 import { empresasElegidas } from '@/lib/empresas-elegidas'
 import { formatearHora, hoy, ZONA_HORARIA } from '@/lib/formato'
 import { horasSinRegreso } from '@/lib/livianos'
@@ -75,6 +76,7 @@ export default async function Tablero() {
   ])
 
   const [{ total: flota }] = await db.select({ total: count() }).from(equipos).where(eq(equipos.tipo, 'Liviano'))
+  const checklists = await resumenDelDia(fecha)
 
   const enEjecucion = delDia.filter((s) => s.estado === 'en_ejecucion')
   const aConfirmar = delDia.filter((s) => s.estado === 'a_confirmar')
@@ -103,7 +105,7 @@ export default async function Tablero() {
         Tablero del día
       </Titulo>
 
-      <div className="mb-4 grid grid-cols-2 gap-3.5 lg:grid-cols-4">
+      <div className="mb-4 grid grid-cols-2 gap-3.5 lg:grid-cols-5">
         <Tarjeta
           etiqueta="Salidas del día"
           valor={delDia.length}
@@ -120,6 +122,17 @@ export default async function Tablero() {
           valor={aConfirmar.length}
           franja="neutra"
           detalle={sinRemito > 0 ? `${sinRemito} sin remito cargado` : 'todas con remito'}
+        />
+        <Tarjeta
+          etiqueta="Checklists recibidos"
+          valor={checklists.recibidos.length}
+          sobre={String(checklists.esperados)}
+          franja={checklists.conObservacion > 0 ? 'acento' : 'verde'}
+          detalle={
+            checklists.conObservacion > 0
+              ? `${checklists.conObservacion} con observación`
+              : `${checklists.pendientes.length} pendientes`
+          }
         />
         <Tarjeta
           etiqueta="Livianos fuera de base"
@@ -177,6 +190,40 @@ export default async function Tablero() {
           )}
         </Panel>
 
+        <div className="flex flex-col gap-4">
+        <Panel
+          titulo="Checklists pendientes"
+          extra={<span className="mono text-[13px] text-[var(--color-tenue)]">{checklists.pendientes.length}</span>}
+        >
+          {checklists.pendientes.length === 0 ? (
+            <Vacio>
+              {checklists.esperados === 0
+                ? 'Ninguna unidad con salida hoy.'
+                : 'Llegaron todos los checklists del día.'}
+            </Vacio>
+          ) : (
+            <ul className="divide-y divide-[var(--color-borde)]">
+              {checklists.pendientes.slice(0, 5).map((p) => (
+                <li key={p.equipoId} className="flex items-center justify-between gap-3 px-4 py-2.5 text-[13px]">
+                  <span className="mono font-semibold">{p.interno}</span>
+                  <span className="flex-grow truncate text-[var(--color-tenue)]">
+                    {[p.marca, p.modelo].filter(Boolean).join(' ')}
+                  </span>
+                  <span className="hdg text-[11.5px] font-semibold text-[var(--color-acento)]">sin enviar</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {checklists.conObservacion > 0 ? (
+            <p className="border-t border-[var(--color-borde)] px-4 py-2.5 text-[12px]">
+              <Link href="/checklists?filtro=observacion" className="enlace font-semibold">
+                {checklists.conObservacion} con observación
+              </Link>{' '}
+              <span className="text-[var(--color-tenue)]">para revisar</span>
+            </p>
+          ) : null}
+        </Panel>
+
         <Panel
           titulo="Vehículos livianos en uso"
           extra={<span className="mono text-[13px] text-[var(--color-tenue)]">{livianos.length}</span>}
@@ -202,6 +249,7 @@ export default async function Tablero() {
             </ul>
           )}
         </Panel>
+        </div>
       </div>
     </main>
   )

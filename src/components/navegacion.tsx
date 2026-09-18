@@ -8,6 +8,7 @@ const SECCIONES = [
   { href: '/', texto: 'Tablero' },
   { href: '/salidas', texto: 'Salidas de trabajo' },
   { href: '/livianos', texto: 'Vehículos livianos' },
+  { href: '/checklists', texto: 'Checklists' },
   { href: '/calendario', texto: 'Calendario' },
   { href: '/maestros', texto: 'Maestros' },
 ]
