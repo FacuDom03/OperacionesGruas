@@ -80,6 +80,14 @@ cierren, averiguá por qué cambió.
   como revisado para mantenimiento y admin.
 - **n8n todavía no está conectado**: el flujo lo arma la empresa.
 
+### Guardias
+
+- `/guardias` para cargar quién está de guardia cada día, por puesto (chofer
+  grúa, chofer camión, ayudante). Puede haber más de una persona por puesto.
+- La tarjeta «Guardia de hoy» del tablero, que completa el mockup.
+- No tiene pestaña propia porque la barra del mockup es fija: se entra desde la
+  tarjeta del tablero o desde Maestros.
+
 ### Diseño y calendario
 
 - Las pantallas siguen el mockup del canvas: Barlow Condensed en títulos, IBM
@@ -122,8 +130,6 @@ estados. El orden queda: **6 (cierre) → 2 (WhatsApp)**. La 4 (checklists, lado
 - **TypeScript quedó en 5.9 y no en la 7.0.2** de `dependencias.json`: la 7 no
   expone `ts.sys` ni `transpileModule`, y Next no puede leer `next.config.ts` ni
   chequear tipos. No afecta a la importación, que corre con `tsx`.
-- Del tablero del mockup falta un bloque: «Guardia de hoy», que necesita que se
-  carguen las guardias (la tabla existe, pero no hay pantalla ni datos).
 - **El cliente de la salida es de texto libre con sugerencias.** Lo que se
   escribe y no está en el maestro se da de alta al guardar, comparando sin
   distinguir mayúsculas ni espacios de más. Si algún día hace falta un cliente

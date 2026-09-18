@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { and, asc, eq, inArray } from 'drizzle-orm'
 import { db } from '@/db'
-import { empresas, equipos, salidas } from '@/db/schema'
+import { clientes, empresas, equipos, salidas } from '@/db/schema'
 import { BotonLink, Celda, Etiqueta, Fila, Panel, SinDato, Tabla, Titulo, Vacio } from '@/components/ui'
 import { empresasElegidas } from '@/lib/empresas-elegidas'
 import { formatearFecha, formatearHora, hoy, ZONA_HORARIA } from '@/lib/formato'
@@ -45,6 +45,7 @@ export default async function Salidas({
       ot: salidas.ot,
       lugarCarga: salidas.lugarCarga,
       lugarDescarga: salidas.lugarDescarga,
+      cliente: clientes.razonSocial,
       interno: equipos.interno,
       marca: equipos.marca,
       modelo: equipos.modelo,
@@ -53,6 +54,7 @@ export default async function Salidas({
     .from(salidas)
     .innerJoin(equipos, eq(salidas.equipoId, equipos.id))
     .innerJoin(empresas, eq(salidas.empresaId, empresas.id))
+    .leftJoin(clientes, eq(salidas.clienteId, clientes.id))
     .where(
       and(
         eq(salidas.fecha, fecha),
@@ -102,7 +104,7 @@ export default async function Salidas({
         {filas.length === 0 ? (
           <Vacio>No hay salidas cargadas para ese día.</Vacio>
         ) : (
-          <Tabla cabeceras={['Hora', 'Unidad', 'N°', 'Trabajo', 'Empresa', 'OT', 'Carga → Descarga', 'Estado']}>
+          <Tabla cabeceras={['Hora', 'Unidad', 'N°', 'Trabajo', 'Cliente / OT', 'Empresa', 'Carga → Descarga', 'Estado']}>
             {filas.map((s) => {
               const etiqueta = ETIQUETA_ESTADO[s.estado]
               return (
@@ -116,8 +118,11 @@ export default async function Salidas({
                   </Celda>
                   <Celda className="mono text-[var(--color-tenue)]">{s.numero}</Celda>
                   <Celda className="mono">{s.ordenDia}</Celda>
+                  <Celda>
+                    <div className="font-medium">{s.cliente ?? <SinDato />}</div>
+                    {s.ot ? <div className="mono text-[11px] text-[var(--color-tenue)]">OT {s.ot}</div> : null}
+                  </Celda>
                   <Celda>{s.empresa}</Celda>
-                  <Celda className="mono">{s.ot ?? <SinDato />}</Celda>
                   <Celda className="text-[var(--color-tenue)]">
                     {s.lugarCarga || s.lugarDescarga
                       ? `${s.lugarCarga ?? '—'} → ${s.lugarDescarga ?? '—'}`

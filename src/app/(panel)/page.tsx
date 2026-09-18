@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { and, asc, count, eq, inArray, isNull, ne } from 'drizzle-orm'
 import { db } from '@/db'
-import { empresas, equipos, personal, salidaPersonal, salidas, usoLivianos } from '@/db/schema'
+import { clientes, empresas, equipos, personal, salidaPersonal, salidas, usoLivianos } from '@/db/schema'
 import { BotonLink, Celda, Etiqueta, Fila, Panel, SinDato, Tabla, Tarjeta, Titulo, Vacio } from '@/components/ui'
 import { resumenDelDia } from '@/lib/consultas-checklists'
+import { guardiaDelDia, nombreDePuesto } from '@/lib/guardias'
 import { empresasElegidas } from '@/lib/empresas-elegidas'
 import { formatearHora, hoy, ZONA_HORARIA } from '@/lib/formato'
 import { horasSinRegreso } from '@/lib/livianos'
@@ -43,6 +44,7 @@ export default async function Tablero() {
         remito: salidas.remito,
         lugarCarga: salidas.lugarCarga,
         lugarDescarga: salidas.lugarDescarga,
+        cliente: clientes.razonSocial,
         interno: equipos.interno,
         marca: equipos.marca,
         modelo: equipos.modelo,
@@ -51,6 +53,7 @@ export default async function Tablero() {
       .from(salidas)
       .innerJoin(equipos, eq(salidas.equipoId, equipos.id))
       .innerJoin(empresas, eq(salidas.empresaId, empresas.id))
+      .leftJoin(clientes, eq(salidas.clienteId, clientes.id))
       .where(and(eq(salidas.fecha, fecha), ne(salidas.estado, 'anulado'), filtroEmpresa))
       .orderBy(asc(salidas.horaSalida), asc(equipos.interno), asc(salidas.ordenDia)),
 
@@ -77,6 +80,7 @@ export default async function Tablero() {
 
   const [{ total: flota }] = await db.select({ total: count() }).from(equipos).where(eq(equipos.tipo, 'Liviano'))
   const checklists = await resumenDelDia(fecha)
+  const guardia = await guardiaDelDia(fecha)
 
   const enEjecucion = delDia.filter((s) => s.estado === 'en_ejecucion')
   const aConfirmar = delDia.filter((s) => s.estado === 'a_confirmar')
@@ -162,9 +166,9 @@ export default async function Tablero() {
                       </div>
                     </Celda>
                     <Celda>
-                      <div className="font-semibold">{s.empresa}</div>
-                      <div className="mono text-[11px] text-[var(--color-tenue)]">
-                        {s.ot ? `OT ${s.ot}` : s.numero}
+                      <div className="font-semibold">{s.cliente ?? <SinDato />}</div>
+                      <div className="text-[11px] text-[var(--color-tenue)]">
+                        <span className="mono">{s.ot ? `OT ${s.ot}` : s.numero}</span> · {s.empresa}
                       </div>
                     </Celda>
                     <Celda className="text-[var(--color-tenue)]">
@@ -249,6 +253,30 @@ export default async function Tablero() {
             </ul>
           )}
         </Panel>
+
+        <section className="rounded-[5px] bg-[var(--color-barra)] px-4 py-3.5 text-[var(--color-barra-texto)]">
+          <div className="mb-2.5 flex items-center justify-between">
+            <h2 className="hdg text-[17px] font-semibold text-[var(--color-marca)]">Guardia de hoy</h2>
+            {puede(sesion.user.rol, 'editar_salidas') ? (
+              <Link href={`/guardias?fecha=${fecha}`} className="text-[12px] text-[var(--color-apagado)] hover:text-white">
+                Editar
+              </Link>
+            ) : null}
+          </div>
+
+          {guardia.length === 0 ? (
+            <p className="text-[13px] text-[var(--color-apagado)]">Sin guardia cargada para hoy.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+              {guardia.map((g) => (
+                <div key={g.id}>
+                  <div className="text-[11.5px] text-[var(--color-apagado)]">{nombreDePuesto(g.rol)}</div>
+                  <div className="text-[13px] font-medium">{g.nombre}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
         </div>
       </div>
     </main>
