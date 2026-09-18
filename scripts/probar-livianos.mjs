@@ -41,7 +41,7 @@ const page = await ctx.newPage()
 await entrar(page, 'admin@gruasdaniele.com', 'clave-de-prueba-123')
 
 await page.goto(`${BASE}/livianos`)
-await esperaTexto(page, 'Vehiculos livianos del', 'abre la grilla del dia')
+await esperaTexto(page, 'Asignación y uso de vehículos livianos', 'abre la grilla del dia')
 ;(await page.textContent('body')).includes('Ver las 18 unidades')
   ? ok('reconoce las 18 unidades livianas') : fallo('no conto las livianas')
 
@@ -69,7 +69,7 @@ await fila2.locator('button:has-text("Guardar")').click()
 await page.waitForTimeout(1500)
 await page.goto(`${BASE}/livianos?fecha=${ayer}`)
 await esperaTexto(page, 'sin hora de regreso', 'avisa la unidad que no volvio')
-;(await page.textContent('body')).includes('sin regreso hace')
+;/h sin regreso/.test(await page.textContent('body'))
   ? ok('muestra hace cuantas horas en la fila') : fallo('falta el detalle por fila')
 
 // el movimiento de hoy todavia no dispara la alerta

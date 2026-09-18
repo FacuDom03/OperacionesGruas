@@ -1,33 +1,91 @@
 @import "tailwindcss";
 
-/* Paleta sobria, pensada para una pantalla de operaciones que se mira todo el
-   dia: fondo claro, un azul de acento y los colores de estado de las salidas. */
+/**
+ * Sistema de diseño tomado del mockup del canvas.
+ * Barlow Condensed para títulos, IBM Plex Sans para texto, IBM Plex Mono para
+ * los datos (internos, horas, números), que van con cifras de ancho fijo.
+ */
 @theme {
-  --color-fondo: #f5f6f8;
+  --color-fondo: #eef0f3;
   --color-panel: #ffffff;
-  --color-borde: #e2e5ea;
-  --color-texto: #1b1f26;
-  --color-tenue: #646c7a;
-  --color-acento: #1d4ed8;
+  --color-panel-suave: #f7f8f9;
+  --color-borde: #dfe2e7;
+  --color-borde-fuerte: #c8ccd3;
 
-  --color-a-confirmar: #b45309;
-  --color-en-ejecucion: #1d4ed8;
-  --color-finalizado: #15803d;
-  --color-anulado: #9ca3af;
+  --color-texto: #16181d;
+  --color-tenue: #656b76;
+  --color-tenue-2: #8b919b;
+  --color-apagado: #a7adb6;
+
+  /* Barra superior */
+  --color-barra: #16181d;
+  --color-barra-activo: #2c3038;
+  --color-barra-texto: #f5f6f7;
+  --color-marca: #e8a33d;
+
+  /* Acentos */
+  --color-acento: #b45309;
+  --color-acento-oscuro: #96450a;
+  --color-acento-suave: #fdf0dd;
+  --color-verde: #1f8a4c;
+  --color-verde-texto: #15803d;
+  --color-verde-suave: #e6f2ea;
+  --color-teal: #0f766e;
+  --color-teal-suave: #eaf5f4;
+  --color-violeta: #6d28d9;
+  --color-violeta-suave: #f2ecfb;
+  --color-neutro-suave: #eef1f5;
+  --color-neutro-texto: #3f4a5a;
+
+  --font-titulo: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-texto: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-dato: "IBM Plex Mono", ui-monospace, monospace;
 }
 
-html,
-body {
-  background-color: var(--color-fondo);
-  color: var(--color-texto);
+/* En capas: lo que va sin capa le gana a las utilidades de Tailwind, y una
+   regla de elemento terminaba pisando clases como text-white. */
+@layer base {
+  html,
+  body {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+  }
+
+  body {
+    font-family: var(--font-texto);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Los enlaces heredan el color de su contexto: en el mockup los internos de
+     las tablas y las pestañas no son naranjas. El naranja se pone a mano donde
+     el enlace tiene que verse como enlace. */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
-body {
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
+@layer components {
+  /** Títulos: condensada, mayúsculas, con un poco de espaciado. */
+  .hdg {
+    font-family: var(--font-titulo);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
 
-/* Los numeros de las tablas alineados en columna, que es como se leen. */
-.tabular {
-  font-variant-numeric: tabular-nums;
+  /** Datos: monoespaciada con cifras de ancho fijo, para que las columnas alineen. */
+  .mono {
+    font-family: var(--font-dato);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /** Enlace que se tiene que ver como enlace. */
+  .enlace {
+    color: var(--color-acento);
+  }
+
+  .enlace:hover {
+    color: #8a3f07;
+    text-decoration: underline;
+  }
 }

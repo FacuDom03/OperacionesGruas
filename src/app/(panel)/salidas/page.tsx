@@ -2,25 +2,25 @@ import Link from 'next/link'
 import { and, asc, eq, inArray } from 'drizzle-orm'
 import { db } from '@/db'
 import { empresas, equipos, salidas } from '@/db/schema'
-import { BotonLink, Celda, Fila, Panel, Tabla, Titulo, Vacio } from '@/components/ui'
+import { BotonLink, Celda, Etiqueta, Fila, Panel, SinDato, Tabla, Titulo, Vacio } from '@/components/ui'
 import { empresasElegidas } from '@/lib/empresas-elegidas'
-import { formatearFecha, formatearHora, hoy } from '@/lib/formato'
+import { formatearFecha, formatearHora, hoy, ZONA_HORARIA } from '@/lib/formato'
 import { puede, sesionRequerida } from '@/lib/permisos'
 
 export const dynamic = 'force-dynamic'
 
-const COLOR_ESTADO: Record<string, string> = {
-  a_confirmar: 'text-[var(--color-a-confirmar)]',
-  en_ejecucion: 'text-[var(--color-en-ejecucion)]',
-  finalizado: 'text-[var(--color-finalizado)]',
-  anulado: 'text-[var(--color-anulado)] line-through',
-}
+const ETIQUETA_ESTADO = {
+  a_confirmar: { texto: 'A confirmar', estilo: 'neutra' },
+  en_ejecucion: { texto: 'En ejecución', estilo: 'acento' },
+  finalizado: { texto: 'Finalizado', estilo: 'verde' },
+  anulado: { texto: 'Anulado', estilo: 'apagada' },
+} as const
 
-const NOMBRE_ESTADO: Record<string, string> = {
-  a_confirmar: 'A confirmar',
-  en_ejecucion: 'En ejecucion',
-  finalizado: 'Finalizado',
-  anulado: 'Anulado',
+function fechaLarga(fecha: string) {
+  const [anio, mes, dia] = fecha.split('-').map(Number)
+  return new Intl.DateTimeFormat('es-AR', {
+    timeZone: ZONA_HORARIA, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  }).format(new Date(Date.UTC(anio, mes - 1, dia, 12)))
 }
 
 export default async function Salidas({
@@ -46,6 +46,8 @@ export default async function Salidas({
       lugarCarga: salidas.lugarCarga,
       lugarDescarga: salidas.lugarDescarga,
       interno: equipos.interno,
+      marca: equipos.marca,
+      modelo: equipos.modelo,
       empresa: empresas.nombreCorto,
     })
     .from(salidas)
@@ -62,69 +64,72 @@ export default async function Salidas({
   const editable = puede(sesion.user.rol, 'editar_salidas')
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-8">
+    <main className="mx-auto w-full max-w-[1440px] flex-grow px-6 py-5">
       <Titulo
+        bajada={<>{fechaLarga(fecha)} · {filas.length} {filas.length === 1 ? 'salida' : 'salidas'}{elegidas ? ' en las empresas elegidas' : ''}</>}
         accion={
-          <div className="flex items-center gap-2">
-            <a
-              href={`/api/pdf/dia/${fecha}${elegidas ? `?empresas=${elegidas.join(',')}` : ''}`}
-              target="_blank"
-              className="rounded-md border border-[var(--color-borde)] bg-[var(--color-panel)] px-3 py-2 text-sm hover:bg-[var(--color-fondo)]"
-            >
-              Imprimir parte del dia
-            </a>
-            {editable ? <BotonLink href={`/salidas/nueva?fecha=${fecha}`}>Nueva salida</BotonLink> : null}
-          </div>
+          <>
+            <form className="flex items-center gap-2">
+              <input
+                type="date"
+                name="fecha"
+                defaultValue={fecha}
+                className="mono rounded-[5px] border border-[var(--color-borde-fuerte)] bg-white px-3 py-2 text-[13px]"
+              />
+              <button type="submit" className="rounded-[5px] border border-[var(--color-borde-fuerte)] bg-white px-3 py-2 text-[13px] font-semibold hover:bg-[var(--color-panel-suave)]">
+                Ver
+              </button>
+            </form>
+
+            <BotonLink href={`/api/pdf/dia/${fecha}${elegidas ? `?empresas=${elegidas.join(',')}` : ''}`} estilo="blanco" nuevaPestania>
+              PDF del día
+            </BotonLink>
+
+            {editable ? <BotonLink href={`/salidas/nueva?fecha=${fecha}`}>+ Nueva salida</BotonLink> : null}
+          </>
         }
       >
-        Salidas del {formatearFecha(fecha)}
+        Salidas de trabajo
       </Titulo>
 
-      <form className="mb-4 flex items-center gap-2">
-        <label className="text-sm text-[var(--color-tenue)]">Ver otro dia</label>
-        <input
-          type="date"
-          name="fecha"
-          defaultValue={fecha}
-          className="rounded-md border border-[var(--color-borde)] bg-[var(--color-panel)] px-3 py-2 text-sm"
-        />
-        <button type="submit" className="rounded-md border border-[var(--color-borde)] bg-[var(--color-panel)] px-3 py-2 text-sm hover:bg-[var(--color-fondo)]">
-          Ver
-        </button>
-      </form>
-
       {guardada ? (
-        <p className="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm text-green-800">Salida guardada.</p>
+        <p className="mb-4 rounded-[5px] bg-[var(--color-verde-suave)] px-3 py-2 text-[13px] text-[var(--color-verde-texto)]">
+          Salida guardada.
+        </p>
       ) : null}
 
       <Panel>
         {filas.length === 0 ? (
-          <Vacio>No hay salidas cargadas para ese dia.</Vacio>
+          <Vacio>No hay salidas cargadas para ese día.</Vacio>
         ) : (
-          <Tabla cabeceras={['Numero', 'Hora', 'Unidad', 'Trabajo', 'Empresa', 'OT', 'Carga', 'Descarga', 'Estado']}>
-            {filas.map((s) => (
-              <Fila key={s.id}>
-                <Celda className="tabular whitespace-nowrap font-medium">
-                  <Link href={`/salidas/${s.id}`} className="text-[var(--color-acento)] hover:underline">{s.numero}</Link>
-                </Celda>
-                <Celda className="tabular whitespace-nowrap">{formatearHora(s.horaSalida) || <span className="text-[var(--color-tenue)]">—</span>}</Celda>
-                <Celda className="tabular">{s.interno}</Celda>
-                <Celda className="tabular">{s.ordenDia}</Celda>
-                <Celda>{s.empresa}</Celda>
-                <Celda className="tabular">{s.ot ?? <span className="text-[var(--color-tenue)]">—</span>}</Celda>
-                <Celda>{s.lugarCarga ?? <span className="text-[var(--color-tenue)]">—</span>}</Celda>
-                <Celda>{s.lugarDescarga ?? <span className="text-[var(--color-tenue)]">—</span>}</Celda>
-                <Celda className={`whitespace-nowrap ${COLOR_ESTADO[s.estado]}`}>{NOMBRE_ESTADO[s.estado]}</Celda>
-              </Fila>
-            ))}
+          <Tabla cabeceras={['Hora', 'Unidad', 'N°', 'Trabajo', 'Empresa', 'OT', 'Carga → Descarga', 'Estado']}>
+            {filas.map((s) => {
+              const etiqueta = ETIQUETA_ESTADO[s.estado]
+              return (
+                <Fila key={s.id}>
+                  <Celda className="mono font-medium">{formatearHora(s.horaSalida) || <SinDato />}</Celda>
+                  <Celda>
+                    <Link href={`/salidas/${s.id}`} className="mono font-semibold">{s.interno}</Link>
+                    <div className="text-[11px] text-[var(--color-tenue)]">
+                      {[s.marca, s.modelo].filter(Boolean).join(' ')}
+                    </div>
+                  </Celda>
+                  <Celda className="mono text-[var(--color-tenue)]">{s.numero}</Celda>
+                  <Celda className="mono">{s.ordenDia}</Celda>
+                  <Celda>{s.empresa}</Celda>
+                  <Celda className="mono">{s.ot ?? <SinDato />}</Celda>
+                  <Celda className="text-[var(--color-tenue)]">
+                    {s.lugarCarga || s.lugarDescarga
+                      ? `${s.lugarCarga ?? '—'} → ${s.lugarDescarga ?? '—'}`
+                      : <SinDato />}
+                  </Celda>
+                  <Celda><Etiqueta estilo={etiqueta.estilo}>{etiqueta.texto}</Etiqueta></Celda>
+                </Fila>
+              )
+            })}
           </Tabla>
         )}
       </Panel>
-
-      <p className="mt-4 text-sm text-[var(--color-tenue)]">
-        {filas.length} {filas.length === 1 ? 'salida' : 'salidas'} ese dia
-        {elegidas ? ' en las empresas elegidas' : ''}.
-      </p>
     </main>
   )
 }

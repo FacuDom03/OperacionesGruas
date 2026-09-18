@@ -2,7 +2,7 @@ import { and, asc, eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { equipos, lugares, personal, usoLivianos } from '@/db/schema'
 import { GrillaLivianos, type FilaLiviano } from './grilla'
-import { Titulo } from '@/components/ui'
+import { BotonLink, Titulo } from '@/components/ui'
 import { formatearFecha, hoy } from '@/lib/formato'
 import { HORAS_SIN_REGRESO, horasSinRegreso } from '@/lib/livianos'
 import { puede, sesionRequerida } from '@/lib/permisos'
@@ -76,56 +76,63 @@ export default async function Livianos({
   }
 
   const sinRegreso = filas.filter((f) => f.horasSinRegreso !== null && f.horasSinRegreso >= HORAS_SIN_REGRESO)
+  const fueraDeBase = filas.filter((f) => f.horaSalida && !f.horaLlegada).length
+  const enTaller = filas.filter((f) => f.estado === 'taller').length
   const editable = puede(sesion.user.rol, 'cargar_livianos')
   const mes = fecha.slice(0, 7)
 
   return (
     <main className="mx-auto max-w-[1600px] px-6 py-8">
       <Titulo
+        bajada={formatearFecha(fecha)}
         accion={
-          <div className="flex items-center gap-2">
-            <a
-              href={`/api/pdf/livianos/${fecha}`}
-              target="_blank"
-              className="rounded-md border border-[var(--color-borde)] bg-[var(--color-panel)] px-3 py-2 text-sm hover:bg-[var(--color-fondo)]"
-            >
-              PDF del dia
-            </a>
-            <a
-              href={`/api/pdf/livianos/mes/${mes}`}
-              target="_blank"
-              className="rounded-md border border-[var(--color-borde)] bg-[var(--color-panel)] px-3 py-2 text-sm hover:bg-[var(--color-fondo)]"
-            >
-              PDF del mes
-            </a>
-          </div>
+          <>
+            <form className="flex items-center gap-2">
+              <input
+                type="date"
+                name="fecha"
+                defaultValue={fecha}
+                className="mono rounded-[5px] border border-[var(--color-borde-fuerte)] bg-white px-3 py-2 text-[13px]"
+              />
+              <button type="submit" className="rounded-[5px] border border-[var(--color-borde-fuerte)] bg-white px-3 py-2 text-[13px] font-semibold hover:bg-[var(--color-panel-suave)]">
+                Ver
+              </button>
+            </form>
+            <BotonLink href={`/api/pdf/livianos/${fecha}`} estilo="blanco" nuevaPestania>PDF del día</BotonLink>
+            <BotonLink href={`/api/pdf/livianos/mes/${mes}`} estilo="blanco" nuevaPestania>PDF del mes</BotonLink>
+          </>
         }
       >
-        Vehiculos livianos del {formatearFecha(fecha)}
+        Asignación y uso de vehículos livianos
       </Titulo>
 
-      <form className="mb-4 flex items-center gap-2">
-        <label className="text-sm text-[var(--color-tenue)]">Ver otro dia</label>
-        <input
-          type="date"
-          name="fecha"
-          defaultValue={fecha}
-          className="rounded-md border border-[var(--color-borde)] bg-[var(--color-panel)] px-3 py-2 text-sm"
-        />
-        <button type="submit" className="rounded-md border border-[var(--color-borde)] bg-[var(--color-panel)] px-3 py-2 text-sm hover:bg-[var(--color-fondo)]">
-          Ver
-        </button>
-      </form>
+      <div className="mb-4 grid grid-cols-2 gap-3.5 lg:grid-cols-4">
+        {[
+          { n: filas.length, t: 'unidades en flota', acento: false },
+          { n: fueraDeBase, t: 'fuera de base ahora', acento: fueraDeBase > 0 },
+          { n: sinRegreso.length, t: 'sin hora de regreso', acento: sinRegreso.length > 0 },
+          { n: enTaller, t: 'en taller externo', acento: false },
+        ].map((k) => (
+          <div key={k.t} className="flex items-baseline gap-2.5 rounded-[5px] border border-[var(--color-borde)] bg-[var(--color-panel)] px-4 py-3.5">
+            <span className={`mono text-[26px] font-semibold leading-none ${k.acento ? 'text-[var(--color-acento)]' : ''}`}>{k.n}</span>
+            <span className="hdg text-[13px] font-semibold text-[var(--color-tenue)]">{k.t}</span>
+          </div>
+        ))}
+      </div>
 
-      {error ? <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
-      {guardada ? <p className="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm text-green-800">Movimiento guardado.</p> : null}
+      {error ? (
+        <p className="mb-4 rounded-[5px] bg-[#fdecec] px-3 py-2 text-[13px] text-[#a32020]">{error}</p>
+      ) : null}
+      {guardada ? (
+        <p className="mb-4 rounded-[5px] bg-[var(--color-verde-suave)] px-3 py-2 text-[13px] text-[var(--color-verde-texto)]">Movimiento guardado.</p>
+      ) : null}
 
       {sinRegreso.length > 0 ? (
-        <div className="mb-4 rounded-md bg-amber-50 px-3 py-3 text-sm text-amber-900">
-          <p className="font-medium">
-            {sinRegreso.length === 1 ? 'Una unidad lleva' : `${sinRegreso.length} unidades llevan`} mas de {HORAS_SIN_REGRESO} h sin hora de regreso:
-          </p>
-          <p className="mt-1">{sinRegreso.map((f) => f.interno).join(', ')}</p>
+        <div className="mb-4 rounded-[5px] border border-[#f0d9a8] bg-[var(--color-acento-suave)] px-3 py-2.5 text-[13px] text-[var(--color-acento-oscuro)]">
+          <span className="font-semibold">
+            {sinRegreso.length === 1 ? 'Una unidad lleva' : `${sinRegreso.length} unidades llevan`} más de {HORAS_SIN_REGRESO} h sin hora de regreso:
+          </span>{' '}
+          <span className="mono">{sinRegreso.map((f) => f.interno).join(', ')}</span>
         </div>
       ) : null}
 
