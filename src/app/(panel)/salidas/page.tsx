@@ -3,6 +3,7 @@ import { and, asc, eq, inArray } from 'drizzle-orm'
 import { db } from '@/db'
 import { clientes, empresas, equipos, salidas } from '@/db/schema'
 import { BotonLink, Celda, Etiqueta, Fila, Panel, SinDato, Tabla, Titulo, Vacio } from '@/components/ui'
+import { NavegadorFecha } from '@/components/navegador-fecha'
 import { empresasElegidas } from '@/lib/empresas-elegidas'
 import { formatearFecha, formatearHora, hoy, ZONA_HORARIA } from '@/lib/formato'
 import { puede, sesionRequerida } from '@/lib/permisos'
@@ -71,17 +72,7 @@ export default async function Salidas({
         bajada={<>{fechaLarga(fecha)} · {filas.length} {filas.length === 1 ? 'salida' : 'salidas'}{elegidas ? ' en las empresas elegidas' : ''}</>}
         accion={
           <>
-            <form className="flex items-center gap-2">
-              <input
-                type="date"
-                name="fecha"
-                defaultValue={fecha}
-                className="mono rounded-[5px] border border-[var(--color-borde-fuerte)] bg-white px-3 py-2 text-[13px]"
-              />
-              <button type="submit" className="rounded-[5px] border border-[var(--color-borde-fuerte)] bg-white px-3 py-2 text-[13px] font-semibold hover:bg-[var(--color-panel-suave)]">
-                Ver
-              </button>
-            </form>
+            <NavegadorFecha fecha={fecha} hoy={hoy()} ruta="/salidas" />
 
             <BotonLink href={`/api/pdf/dia/${fecha}${elegidas ? `?empresas=${elegidas.join(',')}` : ''}`} estilo="blanco" nuevaPestania>
               PDF del día

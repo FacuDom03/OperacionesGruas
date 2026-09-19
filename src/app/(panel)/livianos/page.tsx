@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { equipos, lugares, personal, usoLivianos } from '@/db/schema'
 import { GrillaLivianos, type FilaLiviano } from './grilla'
 import { BotonLink, Titulo } from '@/components/ui'
+import { NavegadorFecha } from '@/components/navegador-fecha'
 import { formatearFecha, hoy } from '@/lib/formato'
 import { HORAS_SIN_REGRESO, horasSinRegreso } from '@/lib/livianos'
 import { puede, sesionRequerida } from '@/lib/permisos'
@@ -87,17 +88,7 @@ export default async function Livianos({
         bajada={formatearFecha(fecha)}
         accion={
           <>
-            <form className="flex items-center gap-2">
-              <input
-                type="date"
-                name="fecha"
-                defaultValue={fecha}
-                className="mono rounded-[5px] border border-[var(--color-borde-fuerte)] bg-white px-3 py-2 text-[13px]"
-              />
-              <button type="submit" className="rounded-[5px] border border-[var(--color-borde-fuerte)] bg-white px-3 py-2 text-[13px] font-semibold hover:bg-[var(--color-panel-suave)]">
-                Ver
-              </button>
-            </form>
+            <NavegadorFecha fecha={fecha} hoy={hoy()} ruta="/livianos" />
             <BotonLink href={`/api/pdf/livianos/${fecha}`} estilo="blanco" nuevaPestania>PDF del día</BotonLink>
             <BotonLink href={`/api/pdf/livianos/mes/${mes}`} estilo="blanco" nuevaPestania>PDF del mes</BotonLink>
           </>

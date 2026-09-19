@@ -2,11 +2,11 @@ import Link from 'next/link'
 import { count } from 'drizzle-orm'
 import type { PgTable } from 'drizzle-orm/pg-core'
 import { db } from '@/db'
-import { clientes, empresas, equipos, lugares, personal } from '@/db/schema'
+import { clientes, empresas, equipos, lugares, personal, usuarios } from '@/db/schema'
 import { Titulo } from '@/components/ui'
 import { hoy } from '@/lib/formato'
 import { guardiaDelDia } from '@/lib/guardias'
-import { sesionRequerida } from '@/lib/permisos'
+import { puede, sesionRequerida } from '@/lib/permisos'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,13 +16,14 @@ async function filas(tabla: PgTable) {
 }
 
 export default async function Maestros() {
-  await sesionRequerida()
+  const sesion = await sesionRequerida()
 
   const [nEmpresas, nPersonal, nEquipos, nClientes, nLugares] = await Promise.all([
     filas(empresas), filas(personal), filas(equipos), filas(clientes), filas(lugares),
   ])
 
   const nGuardias = (await guardiaDelDia(hoy())).length
+  const nUsuarios = puede(sesion.user.rol, 'administrar_usuarios') ? await filas(usuarios) : null
 
   const secciones = [
     { href: '/maestros/personal', nombre: 'Personal', total: nPersonal, detalle: 'Choferes, operadores, verificadores y ayudantes' },

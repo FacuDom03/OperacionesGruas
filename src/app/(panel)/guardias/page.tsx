@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { personal } from '@/db/schema'
 import { agregarGuardia, quitarGuardia } from './acciones'
 import { Boton, ErrorCampo, Etiquetita, Panel, SinDato, Titulo, Vacio } from '@/components/ui'
+import { NavegadorFecha } from '@/components/navegador-fecha'
 import { formatearFecha, hoy } from '@/lib/formato'
 import { PUESTOS, guardiaDelDia, nombreDePuesto } from '@/lib/guardias'
 import { puede, sesionRequerida } from '@/lib/permisos'
@@ -34,17 +35,7 @@ export default async function Guardias({
       <Titulo
         bajada={formatearFecha(fecha)}
         accion={
-          <form className="flex items-center gap-2">
-            <input
-              type="date"
-              name="fecha"
-              defaultValue={fecha}
-              className="mono rounded-[5px] border border-[var(--color-borde-fuerte)] bg-white px-3 py-2 text-[13px]"
-            />
-            <button type="submit" className="rounded-[5px] border border-[var(--color-borde-fuerte)] bg-white px-3 py-2 text-[13px] font-semibold hover:bg-[var(--color-panel-suave)]">
-              Ver
-            </button>
-          </form>
+          <NavegadorFecha fecha={fecha} hoy={hoy()} ruta="/guardias" />
         }
       >
         Guardia del día

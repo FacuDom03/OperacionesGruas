@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { marcarRevisado } from './acciones'
 import { Boton, Panel, SinDato, Titulo, Vacio } from '@/components/ui'
+import { NavegadorFecha } from '@/components/navegador-fecha'
 import { formatearFecha, formatearFechaHora, hoy } from '@/lib/formato'
 import { detalleDeChecklist, resumenDelDia } from '@/lib/consultas-checklists'
 import { puede, sesionRequerida } from '@/lib/permisos'
@@ -37,17 +38,7 @@ export default async function Checklists({
       <Titulo
         bajada={<>Recibidos por WhatsApp vía n8n · {formatearFecha(fecha)}</>}
         accion={
-          <form className="flex items-center gap-2">
-            <input
-              type="date"
-              name="fecha"
-              defaultValue={fecha}
-              className="mono rounded-[5px] border border-[var(--color-borde-fuerte)] bg-white px-3 py-2 text-[13px]"
-            />
-            <button type="submit" className="rounded-[5px] border border-[var(--color-borde-fuerte)] bg-white px-3 py-2 text-[13px] font-semibold hover:bg-[var(--color-panel-suave)]">
-              Ver
-            </button>
-          </form>
+          <NavegadorFecha fecha={fecha} hoy={hoy()} ruta="/checklists" />
         }
       >
         Resumen de checklists

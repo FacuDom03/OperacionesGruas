@@ -15,11 +15,13 @@ export type Accion =
   | 'revisar_checklists'
   | 'reabrir_salida'
   | 'ver_auditoria'
+  | 'administrar_usuarios'
 
 const PERMISOS: Record<Rol, Accion[]> = {
   admin: [
     'ver', 'editar_maestros', 'editar_salidas', 'cargar_livianos',
     'enviar_whatsapp', 'revisar_checklists', 'reabrir_salida', 'ver_auditoria',
+    'administrar_usuarios',
   ],
   operaciones: ['ver', 'editar_salidas', 'cargar_livianos', 'enviar_whatsapp'],
   mantenimiento: ['ver', 'revisar_checklists'],
