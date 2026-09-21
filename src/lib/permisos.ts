@@ -16,15 +16,17 @@ export type Accion =
   | 'reabrir_salida'
   | 'ver_auditoria'
   | 'administrar_usuarios'
+  | 'mover_herramientas'
 
 const PERMISOS: Record<Rol, Accion[]> = {
   admin: [
     'ver', 'editar_maestros', 'editar_salidas', 'cargar_livianos',
     'enviar_whatsapp', 'revisar_checklists', 'reabrir_salida', 'ver_auditoria',
-    'administrar_usuarios',
+    'administrar_usuarios', 'mover_herramientas',
   ],
-  operaciones: ['ver', 'editar_salidas', 'cargar_livianos', 'enviar_whatsapp'],
-  mantenimiento: ['ver', 'revisar_checklists'],
+  operaciones: ['ver', 'editar_salidas', 'cargar_livianos', 'enviar_whatsapp', 'mover_herramientas'],
+  // Mantenimiento entrega y recibe herramientas: es quien las tiene en el taller.
+  mantenimiento: ['ver', 'revisar_checklists', 'mover_herramientas'],
   consulta: ['ver'],
 }
 
@@ -42,12 +44,14 @@ export async function sesionRequerida() {
 /**
  * Igual que sesionRequerida, pero ademas exige un permiso concreto.
  * Usala al principio de toda pagina o accion que escriba algo.
+ *
+ * Manda a /sin-permiso en vez de tirar un Error: en el build de produccion
+ * React borra el mensaje de los errores del servidor, asi que el usuario veia
+ * un parrafo sobre digests en lugar del motivo.
  */
 export async function permisoRequerido(accion: Accion) {
   const sesion = await sesionRequerida()
-  if (!puede(sesion.user.rol, accion)) {
-    throw new Error(`Tu rol (${sesion.user.rol}) no puede ${accion.replace(/_/g, ' ')}.`)
-  }
+  if (!puede(sesion.user.rol, accion)) redirect(`/sin-permiso?accion=${accion}`)
   return sesion
 }
 

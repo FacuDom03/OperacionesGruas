@@ -57,6 +57,20 @@ export function normalizarInterno(texto: string): string {
 }
 
 /**
+ * Codigo de herramienta: GDH + tres digitos. Mismo criterio que el interno de
+ * los equipos, para que quien carga no tenga que acordarse de dos reglas.
+ * Acepta "1", "gdh1", "GDH 001" y devuelve "GDH001".
+ */
+export function normalizarCodigoHerramienta(texto: string): string {
+  const limpio = texto.toUpperCase().replace(/\s+/g, '')
+  const soloNumero = limpio.match(/^(\d{1,3})$/)
+  if (soloNumero) return `GDH${soloNumero[1].padStart(3, '0')}`
+  const conPrefijo = limpio.match(/^GDH(\d{1,3})$/)
+  if (conPrefijo) return `GDH${conPrefijo[1].padStart(3, '0')}`
+  return limpio
+}
+
+/**
  * Telefono a E.164 sin el "+", que es como los espera la Cloud API:
  * 54 + 9 + area + numero. El 9 va siempre: es lo que marca que es un celular
  * argentino, y sin el el mensaje no llega.

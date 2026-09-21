@@ -12,12 +12,22 @@
  * Cubre: alta, numeracion por secuencia, aviso de cruce de unidad y de
  * personal (que avisa pero deja guardar), el UNIQUE de fecha + unidad +
  * trabajo, y que una salida finalizada no se edite hasta que un admin la
- * reabra. Carga salidas de prueba el 17/09/2026: borralas despues.
+ * reabra.
+ *
+ * Carga salidas de prueba en el primer dia libre a partir del 01/01/2027, para
+ * que correrlo dos veces no choque con el UNIQUE de fecha + unidad + trabajo.
+ * Se puede fijar con FECHA=2026-09-17.
  */
 import { chromium } from 'playwright'
 
 const BASE = process.env.BASE ?? 'http://localhost:3000'
-const FECHA = '2026-09-17'
+const DIA_BASE = '2027-01-01'
+const masDias = (fecha, n) => {
+  const f = new Date(`${fecha}T12:00:00Z`)
+  f.setUTCDate(f.getUTCDate() + n)
+  return f.toISOString().slice(0, 10)
+}
+let FECHA = process.env.FECHA ?? DIA_BASE
 let fallas = 0
 const ok = (t) => console.log('  OK   ', t)
 const fallo = (t, extra = '') => { fallas++; console.log('  FALLA ', t, extra) }
@@ -48,6 +58,18 @@ const nav = await chromium.launch()
 const page = await (await nav.newContext()).newPage()
 await entrar(page, 'admin@gruasdaniele.com', 'clave-de-prueba-123')
 
+// El primer dia sin salidas: si quedaron las de una corrida anterior, el alta
+// chocaria con el UNIQUE y todo lo de abajo fallaria por un motivo que no es.
+if (!process.env.FECHA) {
+  for (let i = 0; i < 60; i++) {
+    const candidata = masDias(DIA_BASE, i)
+    await page.goto(`${BASE}/salidas?fecha=${candidata}`)
+    await page.waitForLoadState('networkidle')
+    if (await page.locator('table tbody tr').count() === 0) { FECHA = candidata; break }
+  }
+}
+console.log(`  (dia de prueba: ${FECHA})`)
+
 // ── alta ────────────────────────────────────────────────────────────────
 await page.goto(`${BASE}/salidas/nueva?fecha=${FECHA}`)
 await page.selectOption('select[name=equipoId]', { index: 1 })
@@ -61,7 +83,7 @@ await page.click('form button:has-text("Guardar")')
 await esperaTexto(page, 'Salida guardada', 'da de alta una salida')
 
 const cuerpo = await page.textContent('body')
-const numero = cuerpo.match(/SAL-2026-\d{4}/)?.[0]
+const numero = cuerpo.match(/SAL-\d{4}-\d{4}/)?.[0]   // el año sale de la fecha de la salida
 numero ? ok(`numera sola: ${numero}`) : fallo('no genero el numero')
 
 // ── mismo trabajo, misma unidad, mismo dia: lo frena la base ─────────────

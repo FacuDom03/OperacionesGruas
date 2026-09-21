@@ -65,6 +65,8 @@ const rutas = [
   '/maestros/lugares', '/maestros/lugares/nuevo',
   '/maestros/usuarios', '/maestros/usuarios/nuevo',
   '/auditoria', '/auditoria?accion=alta', `/auditoria?desde=${HOY}&hasta=${HOY}`,
+  '/herramientas', '/herramientas?donde=persona', '/herramientas?sinConfirmar=on',
+  '/herramientas/nueva', '/herramientas/entregar',
 ]
 
 async function barrer(rotulo) {

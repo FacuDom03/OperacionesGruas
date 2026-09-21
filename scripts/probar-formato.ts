@@ -7,7 +7,7 @@
  * Son las reglas de CLAUDE.md que, si se rompen, no se notan hasta que el
  * WhatsApp no llega o un interno queda duplicado.
  */
-import { normalizarCuit, normalizarInterno, normalizarTelefono } from '../src/lib/formato.js'
+import { normalizarCuit, normalizarCodigoHerramienta, normalizarInterno, normalizarTelefono } from '../src/lib/formato.js'
 
 let fallas = 0
 
@@ -41,6 +41,15 @@ const internos: [string, string][] = [
   ['5', 'GDU005'],
 ]
 for (const [entrada, esperado] of internos) comparar(`"${entrada}"`, normalizarInterno(entrada), esperado)
+
+console.log('\n  Codigos de herramienta (GDH + tres digitos)\n')
+const codigos: [string, string][] = [
+  ['1', 'GDH001'],
+  ['gdh7', 'GDH007'],
+  ['GDH 901', 'GDH901'],
+  ['901', 'GDH901'],
+]
+for (const [entrada, esperado] of codigos) comparar(`"${entrada}"`, normalizarCodigoHerramienta(entrada), esperado)
 
 console.log('\n  CUIT\n')
 comparar('"30707558500"', normalizarCuit('30707558500'), '30-70755850-0')

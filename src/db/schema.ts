@@ -6,6 +6,7 @@
 import {
   pgTable, pgEnum, serial, bigserial, smallint, integer, text, boolean,
   numeric, date, time, timestamp, jsonb, unique, index, check, primaryKey,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
@@ -33,6 +34,14 @@ export const resultadoChecklistEnum = pgEnum('resultado_checklist', [
 
 export const rolUsuarioEnum = pgEnum('rol_usuario', [
   'admin', 'operaciones', 'mantenimiento', 'consulta',
+])
+
+export const estadoHerramientaEnum = pgEnum('estado_herramienta', [
+  'activa', 'en_reparacion', 'perdida', 'baja',
+])
+
+export const tipoEntregaEnum = pgEnum('tipo_entrega', [
+  'entrega', 'devolucion', 'traslado', 'baja',
 ])
 
 /* ══════════════════════════ MAESTROS ══════════════════════════ */
@@ -228,6 +237,97 @@ export const guardias = pgTable('guardias', {
   personalId: integer('personal_id').notNull().references(() => personal.id),
 }, (t) => [
   unique('guardias_fecha_rol_personal_unq').on(t.fecha, t.rol, t.personalId),
+])
+
+/* ══════════════════════════ HERRAMIENTAS ══════════════════════════ */
+
+/**
+ * Capitulo 14 del spec. El dato de fondo es la custodia: quien o que tiene la
+ * herramienta ahora. Una salida de trabajo es uno de los momentos en que esa
+ * custodia cambia, no su dueña: por eso esto vive aparte y sobrevive al dia.
+ *
+ * "Disponible" no es un estado: es una herramienta activa cuya custodia es un
+ * lugar.
+ */
+export const herramientas = pgTable('herramientas', {
+  id: serial('id').primaryKey(),
+  codigo: text('codigo').notNull().unique(),          // GDH001
+  nombre: text('nombre').notNull(),                   // "Amoladora angular 4 1/2"
+  tipo: text('tipo'),                                 // Electrica | Manual | Eslinga | Medicion
+  marca: text('marca'),
+  modelo: text('modelo'),
+  numeroSerie: text('numero_serie'),
+  empresaId: integer('empresa_id').references(() => empresas.id),
+  estado: estadoHerramientaEnum('estado').notNull().default('activa'),
+
+  // Custodia actual. Es el ultimo movimiento, guardado aca para que el listado
+  // no tenga que recorrer el historial de cada herramienta. Se escribe en la
+  // misma transaccion que el movimiento: los dos o ninguno.
+  custodiaPersonalId: integer('custodia_personal_id').references(() => personal.id),
+  custodiaEquipoId: integer('custodia_equipo_id').references(() => equipos.id),
+  custodiaLugarId: integer('custodia_lugar_id').references(() => lugares.id),
+  custodiaDesde: timestamp('custodia_desde', { withTimezone: true }).notNull().defaultNow(),
+  // Referencia adelantada: herramienta_entregas se declara mas abajo y a su vez
+  // no depende de esta tabla, asi que el ciclo lo resuelve Postgres sin drama.
+  custodiaEntregaId: integer('custodia_entrega_id')
+    .references((): AnyPgColumn => herramientaEntregas.id, { onDelete: 'set null' }),
+
+  observaciones: text('observaciones'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  // Siempre exactamente una custodia: sin eso, "donde esta" no tiene respuesta.
+  check(
+    'herramientas_una_custodia_check',
+    sql`num_nonnulls(${t.custodiaPersonalId}, ${t.custodiaEquipoId}, ${t.custodiaLugarId}) = 1`,
+  ),
+  index('herramientas_custodia_personal_idx').on(t.custodiaPersonalId),
+  index('herramientas_custodia_equipo_idx').on(t.custodiaEquipoId),
+  index('herramientas_estado_idx').on(t.estado),
+])
+
+/**
+ * El acta de entrega. Una entrega puede llevar varias herramientas a la misma
+ * persona: es lo que se confirma por WhatsApp, de una sola vez.
+ */
+export const herramientaEntregas = pgTable('herramienta_entregas', {
+  id: serial('id').primaryKey(),
+  tipo: tipoEntregaEnum('tipo').notNull(),
+  haciaPersonalId: integer('hacia_personal_id').references(() => personal.id),
+  haciaEquipoId: integer('hacia_equipo_id').references(() => equipos.id),
+  haciaLugarId: integer('hacia_lugar_id').references(() => lugares.id),
+  salidaId: integer('salida_id').references(() => salidas.id),
+  entregadoPor: integer('entregado_por').references(() => usuarios.id),
+  observaciones: text('observaciones'),
+
+  // El link del formulario de confirmacion. En la base queda solo el hash: si
+  // alguien se lleva la tabla, no se lleva links que funcionen.
+  tokenHash: text('token_hash'),
+  tokenVence: timestamp('token_vence', { withTimezone: true }),
+  confirmadoAt: timestamp('confirmado_at', { withTimezone: true }),
+  confirmadoNota: text('confirmado_nota'),
+
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  check(
+    'herramienta_entregas_un_destino_check',
+    sql`num_nonnulls(${t.haciaPersonalId}, ${t.haciaEquipoId}, ${t.haciaLugarId}) = 1`,
+  ),
+  index('herramienta_entregas_fecha_idx').on(t.createdAt),
+  index('herramienta_entregas_salida_idx').on(t.salidaId),
+])
+
+/** Una linea por herramienta de la entrega, con de donde venia. */
+export const herramientaMovimientos = pgTable('herramienta_movimientos', {
+  id: serial('id').primaryKey(),
+  entregaId: integer('entrega_id').notNull().references(() => herramientaEntregas.id, { onDelete: 'cascade' }),
+  herramientaId: integer('herramienta_id').notNull().references(() => herramientas.id),
+  desdePersonalId: integer('desde_personal_id').references(() => personal.id),
+  desdeEquipoId: integer('desde_equipo_id').references(() => equipos.id),
+  desdeLugarId: integer('desde_lugar_id').references(() => lugares.id),
+}, (t) => [
+  unique('herramienta_movimientos_entrega_herramienta_unq').on(t.entregaId, t.herramientaId),
+  index('herramienta_movimientos_herramienta_idx').on(t.herramientaId),
 ])
 
 export const auditoria = pgTable('auditoria', {

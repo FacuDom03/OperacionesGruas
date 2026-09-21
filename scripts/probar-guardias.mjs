@@ -23,7 +23,17 @@ await page.fill('input[name=email]', 'admin@gruasdaniele.com')
 await page.fill('input[name=password]', 'clave-de-prueba-123')
 await Promise.all([page.waitForURL(`${BASE}/`), page.click('form button')])
 
+// Se deja el dia limpio: si quedo gente de una corrida anterior, el estado
+// vacio no se puede comprobar y los conteos de mas abajo dan otra cosa.
+await page.goto(`${BASE}/guardias?fecha=${HOY}`)
+for (let i = 0; i < 20; i++) {
+  if (await page.locator('form button:has-text("Quitar")').count() === 0) break
+  await page.click('form button:has-text("Quitar")')
+  await page.waitForTimeout(900)
+}
+
 // Sin guardia cargada, el tablero lo dice.
+await page.goto(`${BASE}/`)
 ;(await page.textContent('body')).includes('Sin guardia cargada')
   ? ok('el tablero avisa que no hay guardia') : fallo('no muestra el estado vacío')
 

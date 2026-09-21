@@ -550,3 +550,125 @@ Prompt sugerido para la primera sesión en VS Code:
 ---
 
 *Documento generado a partir del relevamiento de los archivos GD 200 y GD 208 del 13/09/2026. Los datos de ejemplo del mockup (OT, remitos, teléfonos, clientes) son inventados; las unidades, el personal, las empresas y los catálogos de estados son los reales de los Excel.*
+
+---
+
+## 14. Gestión de herramientas (pedido del 21/09/2026)
+
+Pedido nuevo del cliente, posterior al relevamiento de los Excel. No sale de ninguna planilla: hoy no hay registro de dónde está cada herramienta.
+
+### Qué hay que resolver
+
+1. **Dónde está cada herramienta** y desde cuándo.
+2. **Quién la tiene**, para que la responsabilidad quede documentada.
+3. Que al entregarla le llegue al empleado un **formulario a su WhatsApp** para confirmar que la recibió.
+
+### Por qué no cuelga de la salida de trabajo
+
+La primera idea es asignar las herramientas dentro de la salida, como se asigna la cuadrilla. No alcanza:
+
+- Una salida es **un día**; una herramienta queda en poder de alguien **semanas**. Si el dato viviera en la salida, al día siguiente la herramienta no estaría en ningún lado.
+- Hay herramientas que **viven arriba de una unidad** (el juego de eslingas de la GDU505) y nunca pasan por una salida.
+- Hay herramientas **en el taller o perdidas**, que tampoco tienen salida.
+
+El dato de fondo es la **custodia**: quién o qué la tiene *ahora*. La salida es **uno de los momentos** en que la custodia cambia, no su dueña. Por eso la salida engancha —desde el alta se entregan herramientas y quedan en el PDF— pero el registro vive aparte y sobrevive al día.
+
+### Custodia
+
+Una herramienta está siempre en exactamente uno de tres lugares:
+
+| Custodia | Ejemplo | Para qué |
+|---|---|---|
+| **Persona** | Gómez, Juan | la que se llevó alguien: es la que hay que reclamar |
+| **Unidad** | GDU505 | la que vive arriba del equipo |
+| **Lugar** | Base, Taller Externo | la que está guardada o en reparación |
+
+«Disponible» no es un estado aparte: es una herramienta **activa** cuya custodia es un lugar.
+
+### Modelo de datos
+
+```sql
+CREATE TYPE estado_herramienta AS ENUM ('activa','en_reparacion','perdida','baja');
+CREATE TYPE tipo_entrega AS ENUM ('entrega','devolucion','traslado','baja');
+
+CREATE TABLE herramientas (
+  id                  serial PRIMARY KEY,
+  codigo              text UNIQUE NOT NULL,        -- GDH001
+  nombre              text NOT NULL,               -- "Amoladora angular 4 1/2"
+  tipo                text,                        -- Electrica | Manual | Eslinga | Medicion
+  marca               text,
+  modelo              text,
+  numero_serie        text,
+  empresa_id          int REFERENCES empresas(id), -- de qué empresa del grupo es
+  estado              estado_herramienta NOT NULL DEFAULT 'activa',
+  -- Custodia actual. Es el último movimiento, guardado acá para que el listado
+  -- no tenga que recorrer el historial de cada herramienta.
+  custodia_personal_id int REFERENCES personal(id),
+  custodia_equipo_id   int REFERENCES equipos(id),
+  custodia_lugar_id    int REFERENCES lugares(id),
+  custodia_desde       timestamptz,
+  custodia_entrega_id  int,                        -- para saber si está confirmada
+  observaciones       text,
+  CHECK (num_nonnulls(custodia_personal_id, custodia_equipo_id, custodia_lugar_id) = 1)
+);
+
+-- El acta: una entrega puede llevar varias herramientas a la misma persona.
+-- Es lo que se confirma por WhatsApp, de una sola vez.
+CREATE TABLE herramienta_entregas (
+  id                serial PRIMARY KEY,
+  tipo              tipo_entrega NOT NULL,
+  hacia_personal_id int REFERENCES personal(id),
+  hacia_equipo_id   int REFERENCES equipos(id),
+  hacia_lugar_id    int REFERENCES lugares(id),
+  salida_id         int REFERENCES salidas(id),   -- si salió de una salida de trabajo
+  entregado_por     int REFERENCES usuarios(id),
+  observaciones     text,
+  token_hash        text,                          -- el link del formulario, hasheado
+  confirmado_at     timestamptz,
+  confirmado_nota   text,
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  CHECK (num_nonnulls(hacia_personal_id, hacia_equipo_id, hacia_lugar_id) = 1)
+);
+
+-- Una línea por herramienta, con de dónde venía.
+CREATE TABLE herramienta_movimientos (
+  id                serial PRIMARY KEY,
+  entrega_id        int NOT NULL REFERENCES herramienta_entregas(id) ON DELETE CASCADE,
+  herramienta_id    int NOT NULL REFERENCES herramientas(id),
+  desde_personal_id int REFERENCES personal(id),
+  desde_equipo_id   int REFERENCES equipos(id),
+  desde_lugar_id    int REFERENCES lugares(id),
+  UNIQUE (entrega_id, herramienta_id)
+);
+```
+
+El historial de una herramienta es `herramienta_movimientos` filtrado por `herramienta_id`; el estado actual está cacheado en `herramientas` y se escribe en la misma transacción que el movimiento.
+
+### La confirmación
+
+El formulario es una ruta de la app, **no un mensaje con botones**: así el empleado ve qué le entregaron, ítem por ítem, y puede dejar una nota («falta el cargador»).
+
+1. Al guardar la entrega se genera un **token al azar**. En la base queda solo el hash.
+2. El link `/confirmar/<token>` se manda al WhatsApp del empleado. Hasta que n8n esté configurado, se copia y se manda a mano.
+3. El empleado abre, ve la lista y confirma. **Sin login**: el token es la credencial.
+4. Queda `confirmado_at`. Si no confirma, la entrega figura como **sin confirmar**.
+
+El token sirve **una sola vez** y vence. No se puede reusar para ver qué tiene cargado otro.
+
+### Reglas
+
+1. Una herramienta tiene **siempre** exactamente una custodia. Sin custodia no se puede dar de alta.
+2. La custodia cacheada en `herramientas` y el último movimiento **no pueden discrepar**: se escriben juntos o no se escribe ninguno.
+3. Una herramienta `baja` o `perdida` no se puede entregar.
+4. Entregar una herramienta que ya tiene otro **no se bloquea**: se avisa de quién venía. Igual que el solapamiento de personal.
+5. Toda entrega deja registro en `auditoria`, como cualquier otra escritura.
+
+### Alertas
+
+- Entregas **sin confirmar** después de 48 h.
+- Herramientas en poder de una persona hace **más de 30 días** sin devolver.
+
+### Qué falta de la empresa
+
+- **El listado de herramientas** para arrancar el inventario: código, nombre, y dónde está hoy cada una.
+- Definir si el código lo pone la empresa o lo genera el sistema (`GDH` + tres dígitos, como los internos).

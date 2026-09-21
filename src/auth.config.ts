@@ -17,6 +17,10 @@ const PUBLICAS = [
   // usa Puppeteer. No se puede resolver aca porque el middleware corre en el
   // edge y la firma del token se verifica del lado de Node.
   '/print',
+  // El formulario donde el empleado confirma que recibio una herramienta. No
+  // tiene sesion: la credencial es el token del link, y se valida del lado de
+  // Node contra el hash que quedo en la base.
+  '/confirmar',
 ]
 
 /**
