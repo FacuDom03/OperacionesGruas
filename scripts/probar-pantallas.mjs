@@ -18,7 +18,7 @@
  */
 import { chromium } from 'playwright'
 
-const BASE = process.env.BASE ?? 'http://127.0.0.1:3000'
+const BASE = process.env.BASE ?? 'http://localhost:3000'
 let fallas = 0
 const ok = (t) => console.log('  OK   ', t)
 const fallo = (t, extra = '') => { fallas++; console.log('  FALLA ', t, extra) }

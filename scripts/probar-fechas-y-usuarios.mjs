@@ -12,7 +12,7 @@
  */
 import { chromium } from 'playwright'
 
-const BASE = process.env.BASE ?? 'http://127.0.0.1:3000'
+const BASE = process.env.BASE ?? 'http://localhost:3000'
 const HOY = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date())
 const dia = (n) => { const f = new Date(`${HOY}T12:00:00Z`); f.setUTCDate(f.getUTCDate() + n); return f.toISOString().slice(0, 10) }
 let fallas = 0

@@ -25,13 +25,32 @@ export default async function Maestros() {
   const nGuardias = (await guardiaDelDia(hoy())).length
   const nUsuarios = puede(sesion.user.rol, 'administrar_usuarios') ? await filas(usuarios) : null
 
-  const secciones = [
+  const secciones: { href: string; nombre: string; total: number | string; detalle: string }[] = [
     { href: '/maestros/personal', nombre: 'Personal', total: nPersonal, detalle: 'Choferes, operadores, verificadores y ayudantes' },
     { href: '/maestros/equipos', nombre: 'Equipos', total: nEquipos, detalle: 'Gruas, camiones, livianos y auxiliares' },
     { href: '/maestros/empresas', nombre: 'Empresas', total: nEmpresas, detalle: 'Las empresas del grupo' },
     { href: '/maestros/clientes', nombre: 'Clientes', total: nClientes, detalle: 'Padron propio, hasta definir si sale de Odoo' },
     { href: '/maestros/lugares', nombre: 'Lugares', total: nLugares, detalle: 'Base, Casona, Taller Externo y demas' },
+    { href: `/guardias?fecha=${hoy()}`, nombre: 'Guardias', total: nGuardias, detalle: 'Quien esta de guardia cada dia, por puesto' },
   ]
+
+  if (nUsuarios !== null) {
+    secciones.push({
+      href: '/maestros/usuarios',
+      nombre: 'Usuarios',
+      total: nUsuarios,
+      detalle: 'Quien entra a la central y con que permisos',
+    })
+  }
+
+  if (puede(sesion.user.rol, 'ver_auditoria')) {
+    secciones.push({
+      href: '/auditoria',
+      nombre: 'Registro de cambios',
+      total: '',
+      detalle: 'Quien cambio que y cuando, con el detalle campo por campo',
+    })
+  }
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8">

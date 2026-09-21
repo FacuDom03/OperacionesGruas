@@ -13,7 +13,7 @@
 import { chromium } from 'playwright'
 import { writeFileSync } from 'node:fs'
 
-const BASE = process.env.BASE ?? 'http://127.0.0.1:3000'
+const BASE = process.env.BASE ?? 'http://localhost:3000'
 let fallas = 0
 const ok = (t) => console.log('  OK   ', t)
 const fallo = (t, e = '') => { fallas++; console.log('  FALLA ', t, e) }
@@ -26,8 +26,9 @@ await page.fill('input[name=email]', 'admin@gruasdaniele.com')
 await page.fill('input[name=password]', 'clave-de-prueba-123')
 await Promise.all([page.waitForURL(`${BASE}/`), page.click('form button:has-text("Entrar")')])
 
-// el numero de la primera salida del 17
-await page.goto(`${BASE}/salidas?fecha=2026-09-17`)
+// el numero de la primera salida del dia que se pida (por defecto, hoy)
+const FECHA = process.env.FECHA ?? new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date())
+await page.goto(`${BASE}/salidas?fecha=${FECHA}`)
 const numero = (await page.textContent('body')).match(/SAL-2026-\d{4}/)?.[0]
 await Promise.all([page.waitForURL(/\/salidas\/\d+$/), page.click('table a >> nth=0')])
 const id = page.url().split('/').pop()
@@ -50,7 +51,7 @@ cuerpo.subarray(0, 5).toString() === '%PDF-' ? ok(`es un PDF de verdad (${(cuerp
 writeFileSync('salida.pdf', cuerpo)
 
 // el parte del dia
-const res2 = await ctx.request.get(`${BASE}/api/pdf/dia/2026-09-17`, { timeout: 90000 })
+const res2 = await ctx.request.get(`${BASE}/api/pdf/dia/${FECHA}`, { timeout: 90000 })
 const cuerpo2 = await res2.body()
 res2.status() === 200 && cuerpo2.subarray(0, 5).toString() === '%PDF-'
   ? ok(`el parte del dia sale en PDF (${(cuerpo2.length / 1024).toFixed(0)} kB)`) : fallo('parte del dia', res2.status())

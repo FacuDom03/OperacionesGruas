@@ -11,7 +11,7 @@
  */
 import { chromium } from 'playwright'
 
-const BASE = process.env.BASE ?? 'http://127.0.0.1:3000'
+const BASE = process.env.BASE ?? 'http://localhost:3000'
 const HOY = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date())
 let fallas = 0
 const ok = (t) => console.log('  OK   ', t)

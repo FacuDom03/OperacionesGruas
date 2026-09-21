@@ -11,7 +11,7 @@
 import { chromium } from 'playwright'
 import { writeFileSync } from 'node:fs'
 
-const BASE = process.env.BASE ?? 'http://127.0.0.1:3000'
+const BASE = process.env.BASE ?? 'http://localhost:3000'
 const HOY = process.env.HOY
 let fallas = 0
 const ok = (t) => console.log('  OK   ', t)

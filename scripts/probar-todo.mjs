@@ -11,7 +11,7 @@
  * Carga dos salidas de prueba de hoy: borralas despues.
  */
 import { chromium } from 'playwright'
-const BASE = process.env.BASE ?? 'http://127.0.0.1:3000'
+const BASE = process.env.BASE ?? 'http://localhost:3000'
 const HOY = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date())
 const MES = HOY.slice(0, 7)
 let problemas = 0
@@ -63,6 +63,8 @@ const rutas = [
   '/maestros/empresas', '/maestros/empresas/nuevo',
   '/maestros/clientes', '/maestros/clientes/nuevo',
   '/maestros/lugares', '/maestros/lugares/nuevo',
+  '/maestros/usuarios', '/maestros/usuarios/nuevo',
+  '/auditoria', '/auditoria?accion=alta', `/auditoria?desde=${HOY}&hasta=${HOY}`,
 ]
 
 async function barrer(rotulo) {
