@@ -161,13 +161,66 @@ Y en un par de minutos está publicado. Si algo sale mal, EasyPanel guarda los d
 
 ---
 
-## Backups
+## Respaldos
 
-El Postgres del VPS es ahora el único lugar donde viven las salidas de trabajo. Configurá un backup automático **antes** de que la empresa empiece a usarlo en serio:
+El Postgres del VPS es ahora el único lugar donde viven las salidas de trabajo. Esto se deja andando **antes** de que la empresa lo use en serio.
 
-- EasyPanel tiene backups programados por servicio, a un destino S3 compatible.
-- Como mínimo: un backup diario de la base, guardado fuera del VPS.
-- Probá una restauración una vez, antes de apagar el Excel. Un backup que nunca se restauró no es un backup.
+Los PDF del volumen no hace falta respaldarlos: se vuelven a generar desde la app. Lo que no se puede volver a generar es la base.
+
+### El script
+
+`scripts/respaldo.sh` deja un archivo por corrida, comprueba que se pueda leer y borra los que pasaron los días que se le digan.
+
+**Corre en el VPS, por SSH, no adentro del contenedor de la app**: la imagen no lleva ni el script ni `pg_dump`. Alcanza con clonar el repositorio en el VPS, o copiar ese único archivo.
+
+```bash
+git clone https://github.com/FacuDom03/OperacionesGruas.git /opt/central-operativa
+cd /opt/central-operativa
+
+DATABASE_URL="postgresql://central:CLAVE@localhost:5432/central_operativa" \
+PG_DUMP="docker exec -i nombreDelProyecto_postgres pg_dump" \
+PG_RESTORE="docker exec -i nombreDelProyecto_postgres pg_restore" \
+RESPALDO_PATH=/respaldos RESPALDO_DIAS=14 \
+bash scripts/respaldo.sh
+```
+
+`PG_DUMP` y `PG_RESTORE` hacen que el volcado lo haga el Postgres del contenedor. Es lo más sano: el `pg_dump` del host suele ser de otra versión y entonces se planta con un *server version mismatch*. Si el host tiene el cliente de la misma versión, se pueden omitir.
+
+El nombre del contenedor sale de `docker ps`.
+
+### Que corra solo
+
+Por SSH al VPS, `crontab -e`, y una línea para las 3 de la mañana:
+
+```
+0 3 * * * cd /opt/central-operativa && DATABASE_URL="postgresql://central:CLAVE@localhost:5432/central_operativa" PG_DUMP="docker exec -i nombreDelProyecto_postgres pg_dump" PG_RESTORE="docker exec -i nombreDelProyecto_postgres pg_restore" RESPALDO_PATH=/respaldos bash scripts/respaldo.sh >> /var/log/respaldo-central.log 2>&1
+```
+
+Como la línea lleva la clave adentro, el crontab queda legible solo para root: `chmod 600` sobre el archivo si lo editás a mano.
+
+Si preferís no depender del cron del host, EasyPanel también tiene respaldos programados por servicio, a un destino S3 compatible. Los dos sirven; lo que no sirve es ninguno.
+
+### Sacarlos del VPS
+
+Un respaldo que vive en el mismo disco que la base no protege de que se pierda el disco. Como mínimo, una copia diaria afuera: el destino S3 de EasyPanel, o un `rclone copy /respaldos remoto:central-operativa` después de cada respaldo.
+
+### Restaurar
+
+```bash
+docker exec -i nombreDelProyecto_postgres pg_restore --clean --if-exists --no-owner \
+  -d "postgresql://central:CLAVE@localhost:5432/central_operativa" \
+  < /respaldos/central-operativa-2026-09-21-0300.dump
+```
+
+**Probá una restauración antes de apagar el Excel.** Sobre una base nueva, para no tocar la de producción:
+
+```sql
+CREATE DATABASE prueba_de_restauracion;
+```
+
+Restaurá ahí y contá las filas. Tienen que dar los números de siempre: 10 empresas, 7 lugares, 55 personas, 96 equipos. Después, `DROP DATABASE prueba_de_restauracion;`.
+
+Un respaldo que nunca se restauró no es un respaldo.
 
 ---
 
@@ -181,3 +234,4 @@ El Postgres del VPS es ahora el único lugar donde viven las salidas de trabajo.
 | No conecta a la base | Estás usando `localhost` en vez del nombre interno del servicio de Postgres |
 | El certificado no se emite | El DNS todavía no apunta al VPS, o no propagó |
 | El contenedor se reinicia solo | Se quedó sin memoria generando un PDF. Revisá con `free -h` y agregá swap |
+| El respaldo corta con *server version mismatch* | El `pg_dump` del host es de otra versión. Usá `PG_DUMP`/`PG_RESTORE` con `docker exec` |

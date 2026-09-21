@@ -12,6 +12,7 @@
     "test": "tsx scripts/probar-formato.ts",
     "import:excel": "tsx scripts/importar-excel.ts",
     "usuario": "tsx scripts/crear-usuario.ts",
+    "respaldo": "bash scripts/respaldo.sh",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
