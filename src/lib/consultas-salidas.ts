@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { clientes, empresas, equipos, personal, salidaPersonal, salidas } from '@/db/schema'
+import { herramientasDeSalida } from '@/lib/herramientas'
 
 /** Trae todo lo que va en la hoja de una salida, con los nombres ya resueltos. */
 export async function datosDeSalida(id: number) {
@@ -39,6 +40,10 @@ export async function datosDeSalida(id: number) {
     return p?.apellidoNombre ?? null
   }
 
+  // Las herramientas que salieron con el trabajo van en la hoja: es el papel
+  // que firma el chofer, asi que tiene que decir con que se fue.
+  const herramientas = await herramientasDeSalida(id)
+
   const [verificador, operador, auxiliar] = await Promise.all([
     nombreDe(fila.salida.verificadorId),
     nombreDe(fila.salida.operadorId),
@@ -47,5 +52,5 @@ export async function datosDeSalida(id: number) {
       : Promise.resolve(null),
   ])
 
-  return { ...fila, cuadrilla, verificador, operador, auxiliar }
+  return { ...fila, cuadrilla, herramientas, verificador, operador, auxiliar }
 }

@@ -88,6 +88,20 @@ await page.fill('input[name=password]', 'clave-larga-123')
 await page.click('form button:has-text("Guardar")')
 await page.waitForTimeout(2000)
 cuerpo = await page.textContent('body')
+
+// Si quedo de una corrida anterior, el alta rebota por el correo repetido: se
+// le vuelve a poner la clave conocida para que lo de abajo siga sirviendo.
+if (cuerpo.includes('Ya hay un usuario con ese correo')) {
+  await page.goto(`${BASE}/maestros/usuarios`)
+  await page.click('a:has-text("nuevo.usuario@gruasdaniele.com")')
+  await page.waitForLoadState('networkidle')
+  await page.selectOption('select[name=rol]', 'operaciones')
+  await page.fill('input[name=password]', 'clave-larga-123')
+  await page.click('form button:has-text("Guardar")')
+  await page.waitForTimeout(2000)
+  cuerpo = await page.textContent('body')
+}
+
 cuerpo.includes('nuevo.usuario@gruasdaniele.com') ? ok('crea el usuario con el correo en minúsculas') : fallo('no lo creó')
 
 // El usuario nuevo puede entrar.
@@ -98,8 +112,10 @@ await page2.fill('input[name=password]', 'clave-larga-123')
 await page2.click('form button')
 await page2.waitForTimeout(2200)
 page2.url() === `${BASE}/` ? ok('el usuario creado puede entrar') : fallo('no pudo entrar', page2.url())
-;(await page2.goto(`${BASE}/maestros/usuarios`), await page2.textContent('body')).includes('No se pudo mostrar')
-  ? ok('operaciones no entra a usuarios') : fallo('operaciones entró a usuarios')
+await page2.goto(`${BASE}/maestros/usuarios`)
+await page2.waitForLoadState('networkidle')
+page2.url().includes('/sin-permiso') && (await page2.textContent('body')).includes('No podés entrar acá')
+  ? ok('operaciones no entra a usuarios') : fallo('operaciones entró a usuarios', page2.url())
 
 // Un admin no se puede desactivar a si mismo.
 await page.goto(`${BASE}/maestros/usuarios`)

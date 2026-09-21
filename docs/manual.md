@@ -156,6 +156,59 @@ Se entra desde la tarjeta **Guardia de hoy** del tablero, o desde Maestros.
 
 ---
 
+## Herramientas
+
+Dónde está cada herramienta y quién la tiene.
+
+### Cómo se lee el listado
+
+Cada herramienta está **siempre en un solo lado**:
+
+| Dice | Quiere decir |
+|---|---|
+| **En Base** (o cualquier lugar) | está guardada, disponible |
+| **Tiene Gómez, Juan** | se la llevó alguien |
+| **Arriba de GDU505** | vive en esa unidad |
+
+Al lado va desde cuándo está ahí. Si hace mucho que no vuelve, se ve de una.
+
+### Entregar
+
+**Entregar** arriba a la derecha. Se elige a quién y se marcan las herramientas
+—pueden ser varias de una—. Si la que entregás la tiene otra persona, el
+sistema avisa, pero **deja guardar igual**: el cambio de manos queda en el
+historial.
+
+Si el destino es un **lugar**, se registra como devolución.
+
+### La confirmación por WhatsApp
+
+Cuando se la lleva una **persona**, al guardar sale un link. Se lo mandás por
+WhatsApp y el empleado, desde el teléfono, ve qué le entregaron y confirma.
+Puede dejar una nota («falta el cargador»).
+
+**El link se muestra una sola vez**: si lo perdés, registrá la entrega de nuevo.
+
+Hasta que la herramienta se confirme, figura como **sin confirmar** en el
+listado y en el tablero. Una devolución al depósito no pide confirmación: un
+lugar no acusa recibo.
+
+### En las salidas de trabajo
+
+Cada salida tiene su bloque **Herramientas de esta salida**. Desde ahí se
+entregan y quedan enganchadas a ese trabajo, y **salen impresas en la hoja**
+que firma el chofer.
+
+La herramienta no «pertenece» a la salida: sigue estando donde esté hasta que
+alguien la mueva. Si después se la lleva otro, el bloque de la salida lo dice.
+
+### El historial
+
+En la ficha de cada herramienta está todo: quién la tuvo, desde cuándo, con qué
+salida salió y qué escribió el empleado al confirmar. No se edita.
+
+---
+
 ## Maestros
 
 Personal, equipos, empresas, clientes, lugares, guardias y —si sos
@@ -192,11 +245,12 @@ línea.
 | Rol | Qué puede |
 |---|---|
 | **admin** | todo, incluidos usuarios, reabrir salidas y el registro de cambios |
-| **operaciones** | cargar y editar salidas y livianos |
-| **mantenimiento** | ver todo y marcar checklists como revisados |
+| **operaciones** | cargar y editar salidas y livianos, y mover herramientas |
+| **mantenimiento** | ver todo, marcar checklists como revisados y mover herramientas |
 | **consulta** | ver, nada más |
 
-Si intentás algo que tu rol no puede, la pantalla lo dice. No es una falla.
+Si intentás algo que tu rol no puede, aparece una pantalla que dice qué rol
+tenés y cuál hace falta. No es una falla.
 
 ---
 
@@ -210,6 +264,8 @@ Si intentás algo que tu rol no puede, la pantalla lo dice. No es una falla.
 | El teléfono no se guarda | le falta el área o el 9. Tiene que quedar `54` + `9` + área + número |
 | El PDF tarda | está armando la hoja. El parte del día completo puede tardar unos segundos |
 | Una pantalla vacía en un día que tuvo trabajo | fijate el filtro de empresa de arriba: puede estar en una sola |
+| Perdiste el link de confirmación de una herramienta | registrá la entrega de nuevo: el link sale una sola vez y no se puede recuperar |
+| «Este link no sirve» al confirmar | ya se usó, o está mal copiado. Pedí uno nuevo a la oficina |
 
 Si algo se rompe de verdad, anotá **qué pantalla era, qué apretaste y a qué
 hora**. Con eso se encuentra en el registro.

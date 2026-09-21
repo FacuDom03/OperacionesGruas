@@ -19,15 +19,10 @@
  * Se puede fijar con FECHA=2026-09-17.
  */
 import { chromium } from 'playwright'
+import { diaLibre } from './dia-libre.mjs'
 
 const BASE = process.env.BASE ?? 'http://localhost:3000'
-const DIA_BASE = '2027-01-01'
-const masDias = (fecha, n) => {
-  const f = new Date(`${fecha}T12:00:00Z`)
-  f.setUTCDate(f.getUTCDate() + n)
-  return f.toISOString().slice(0, 10)
-}
-let FECHA = process.env.FECHA ?? DIA_BASE
+let FECHA = process.env.FECHA ?? '2027-01-01'
 let fallas = 0
 const ok = (t) => console.log('  OK   ', t)
 const fallo = (t, extra = '') => { fallas++; console.log('  FALLA ', t, extra) }
@@ -58,16 +53,7 @@ const nav = await chromium.launch()
 const page = await (await nav.newContext()).newPage()
 await entrar(page, 'admin@gruasdaniele.com', 'clave-de-prueba-123')
 
-// El primer dia sin salidas: si quedaron las de una corrida anterior, el alta
-// chocaria con el UNIQUE y todo lo de abajo fallaria por un motivo que no es.
-if (!process.env.FECHA) {
-  for (let i = 0; i < 60; i++) {
-    const candidata = masDias(DIA_BASE, i)
-    await page.goto(`${BASE}/salidas?fecha=${candidata}`)
-    await page.waitForLoadState('networkidle')
-    if (await page.locator('table tbody tr').count() === 0) { FECHA = candidata; break }
-  }
-}
+if (!process.env.FECHA) FECHA = await diaLibre(page, BASE)
 console.log(`  (dia de prueba: ${FECHA})`)
 
 // ── alta ────────────────────────────────────────────────────────────────

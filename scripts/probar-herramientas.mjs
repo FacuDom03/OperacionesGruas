@@ -18,6 +18,7 @@ let fallas = 0
 const ok = (t) => console.log('  OK    ', t)
 const fallo = (t, e = '') => { fallas++; console.log('  FALLA ', t, e) }
 const tiene = (texto, buscado) => texto.toLowerCase().includes(buscado.toLowerCase())
+const HOY_SALIDA = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date())
 
 const nav = await chromium.launch()
 const page = await (await nav.newContext({ viewport: { width: 1440, height: 900 } })).newPage()
@@ -179,6 +180,71 @@ await page.goto(`${BASE}/herramientas?texto=zzz-no-existe`)
 await page.waitForLoadState('networkidle')
 tiene(await page.locator('main').innerText(), 'No hay herramientas con esos filtros')
   ? ok('la busqueda sin resultados lo dice') : fallo('no avisa que no hay resultados')
+
+// ── el enganche con una salida de trabajo ────────────────────────────────
+// Se busca una salida cualquiera para no depender de que exista una fija.
+await page.goto(`${BASE}/salidas?fecha=${HOY_SALIDA}`)
+await page.waitForLoadState('networkidle')
+if (await page.locator('table a[href^="/salidas/"]').count() === 0) {
+  await page.goto(`${BASE}/salidas/nueva?fecha=${HOY_SALIDA}`)
+  await page.selectOption('select[name=equipoId]', { index: 3 })
+  await page.selectOption('select[name=empresaId]', { index: 1 })
+  await page.fill('input[name=horaSalida]', '09:30')
+  await page.selectOption('select[name=personalId]', { index: 1 })
+  await page.click('form button:has-text("Guardar")')
+  await page.waitForTimeout(1500)
+  if (await page.locator('form button:has-text("Guardar igual")').count() > 0) {
+    await page.click('form button:has-text("Guardar igual")')
+    await page.waitForTimeout(1500)
+  }
+  await page.goto(`${BASE}/salidas?fecha=${HOY_SALIDA}`)
+  await page.waitForLoadState('networkidle')
+}
+
+await Promise.all([
+  page.waitForURL(/\/salidas\/\d+/),
+  page.locator('table a[href^="/salidas/"]').first().click(),
+])
+await page.waitForLoadState('networkidle')
+const idSalida = page.url().split('/').pop()
+cuerpo = await page.locator('main').innerText()
+tiene(cuerpo, 'Herramientas de esta salida')
+  ? ok('la salida tiene su bloque de herramientas') : fallo('falta el bloque en la salida')
+
+await Promise.all([
+  page.waitForURL(/\/herramientas\/entregar\?salida=/),
+  page.locator('main a[href^="/herramientas/entregar?salida="]').first().click(),
+])
+await page.waitForLoadState('networkidle')
+cuerpo = await page.locator('main').innerText()
+tiene(cuerpo, 'Para la salida SAL-') ? ok('la entrega sabe de que salida viene') : fallo('no dice la salida')
+
+// Propone la cuadrilla; si la salida no tiene a nadie cargado, la unidad.
+const propuesto = await page.locator('select[name=destino]').inputValue()
+const FORMATO_DESTINO = /^(persona|unidad):\d+$/
+FORMATO_DESTINO.test(propuesto)
+  ? ok(`propone un destino solo (${propuesto.split(':')[0]})`) : fallo('no propuso a nadie', propuesto)
+
+// Se fuerza una persona, que es el caso que pide confirmacion.
+const personaSalida = await page.locator('select[name=destino] option[value^="persona:"]').first().getAttribute('value')
+await page.selectOption('select[name=destino]', personaSalida)
+await page.fill('input[type=search]', 'GDH902')
+await page.waitForTimeout(400)
+await page.locator('input[name=herramientas]').first().check()
+await page.click('form button:has-text("Registrar entrega")')
+await page.waitForURL(/\/herramientas\?/, { timeout: 15000 })
+
+await page.goto(`${BASE}/salidas/${idSalida}`)
+await page.waitForLoadState('networkidle')
+cuerpo = await page.locator('main').innerText()
+tiene(cuerpo, 'GDH902') ? ok('la herramienta figura en la salida') : fallo('no figura en la salida')
+tiene(cuerpo, 'Sin confirmar') ? ok('la salida muestra que falta confirmar') : fallo('no marca la confirmacion')
+
+// Y sale en la hoja que firma el chofer.
+const hoja = await page.goto(`${BASE}/print/salida/${idSalida}`)
+const textoHoja = await page.locator('body').innerText()
+hoja.status() === 200 && tiene(textoHoja, 'GDH902') && tiene(textoHoja, 'Herramientas')
+  ? ok('la hoja de la salida lista las herramientas') : fallo('la hoja no las lista')
 
 // ── un rol consulta no mueve nada ────────────────────────────────────────
 const mirona = await (await nav.newContext()).newPage()

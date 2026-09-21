@@ -6,6 +6,7 @@ import { reabrirSalida } from '../acciones'
 import { FormularioSalida } from '../formulario'
 import { opcionesDeSalida } from '../opciones'
 import { Titulo } from '@/components/ui'
+import { HerramientasDeSalida } from '@/components/herramientas-de-salida'
 import { formatearFecha, hoy } from '@/lib/formato'
 import { puede, sesionRequerida } from '@/lib/permisos'
 
@@ -41,6 +42,7 @@ export default async function EditarSalida({ params }: { params: Promise<{ id: s
   const finalizada = salida.estado === 'finalizado'
   const puedeEditar = puede(sesion.user.rol, 'editar_salidas')
   const puedeReabrir = puede(sesion.user.rol, 'reabrir_salida')
+  const puedeEntregar = puede(sesion.user.rol, 'mover_herramientas')
 
   // Una salida finalizada no se edita. Solo un admin la reabre, y queda en
   // auditoria (regla 4 del capitulo 4 del spec).
@@ -74,6 +76,10 @@ export default async function EditarSalida({ params }: { params: Promise<{ id: s
           <div><dt className="text-[var(--color-tenue)]">Descarga</dt><dd>{salida.lugarDescarga ?? '—'}</dd></div>
           <div className="sm:col-span-2"><dt className="text-[var(--color-tenue)]">Observaciones</dt><dd>{salida.observaciones ?? '—'}</dd></div>
         </dl>
+
+        {/* Una salida finalizada no se edita, pero las herramientas que
+            salieron con ella siguen estando en algun lado. */}
+        <HerramientasDeSalida salidaId={salida.id} puedeEntregar={puedeEntregar && !finalizada} />
       </main>
     )
   }
@@ -91,6 +97,8 @@ export default async function EditarSalida({ params }: { params: Promise<{ id: s
         hoy={hoy()}
         {...opciones}
       />
+
+      <HerramientasDeSalida salidaId={salida.id} puedeEntregar={puedeEntregar} />
     </main>
   )
 }

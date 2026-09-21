@@ -66,11 +66,15 @@ No cambies ninguna de estas elecciones sin preguntar.
 - Si una persona ya está asignada ese día en un horario que se pisa, se muestra **advertencia, no bloqueo**. Lo mismo para la unidad.
 - Una salida `finalizado` no se edita. Solo un usuario `admin` la reabre, y queda en auditoría.
 - La numeración `SAL-<año>-<secuencia>` la genera una secuencia de Postgres. El usuario nunca la escribe.
+- Una herramienta está **siempre en exactamente una custodia**: una persona, una unidad o un lugar. La custodia cacheada en `herramientas` y el último movimiento se escriben en la misma transacción; si discrepan, el listado miente.
+- Entregar una herramienta que ya tiene otro es **advertencia, no bloqueo**, igual que el solapamiento de personal.
 
 ### Seguridad
 
 - Ningún secreto en el código ni en el repositorio. Todo por variables de entorno, declaradas en `.env.example`.
 - Los endpoints que consume n8n (`/api/checklists`, `/api/envios/...`) se autentican por header `x-api-key`.
+- `/confirmar/[token]` es la única ruta sin sesión. La credencial es el token del link: en la base queda solo el hash, sirve hasta que se confirma y vence a los 30 días.
+- Un permiso que falta manda a `/sin-permiso`, nunca tira un `Error`: en producción React borra el mensaje y el usuario no se entera de qué pasó.
 - Cuatro roles: `admin`, `operaciones`, `mantenimiento`, `consulta`. Verificá el rol en el servidor, nunca solo en la interfaz.
 
 ### Cómo trabajar

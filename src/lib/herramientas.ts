@@ -204,6 +204,37 @@ export async function herramientasDeEntrega(entregaId: number) {
     .orderBy(asc(herramientas.codigo))
 }
 
+/**
+ * Las herramientas que se entregaron para una salida de trabajo, con a quien
+ * fueron y si las confirmo. La salida es uno de los momentos en que cambia la
+ * custodia: por eso esto se lee por `salida_id` del acta, no por la herramienta.
+ */
+export async function herramientasDeSalida(salidaId: number) {
+  return db
+    .select({
+      entregaId: herramientaEntregas.id,
+      codigo: herramientas.codigo,
+      nombre: herramientas.nombre,
+      herramientaId: herramientas.id,
+      haciaPersona: personal.apellidoNombre,
+      haciaUnidad: equipos.interno,
+      haciaLugar: lugares.nombre,
+      confirmadoAt: herramientaEntregas.confirmadoAt,
+      pideConfirmacion: sql<boolean>`${herramientaEntregas.tokenHash} is not null`,
+      cuando: herramientaEntregas.createdAt,
+      // Si despues se la llevo otro, la salida ya no la tiene.
+      sigueEnLaSalida: sql<boolean>`${herramientas.custodiaEntregaId} = ${herramientaEntregas.id}`,
+    })
+    .from(herramientaEntregas)
+    .innerJoin(herramientaMovimientos, eq(herramientaMovimientos.entregaId, herramientaEntregas.id))
+    .innerJoin(herramientas, eq(herramientaMovimientos.herramientaId, herramientas.id))
+    .leftJoin(personal, eq(herramientaEntregas.haciaPersonalId, personal.id))
+    .leftJoin(equipos, eq(herramientaEntregas.haciaEquipoId, equipos.id))
+    .leftJoin(lugares, eq(herramientaEntregas.haciaLugarId, lugares.id))
+    .where(eq(herramientaEntregas.salidaId, salidaId))
+    .orderBy(asc(herramientaEntregas.createdAt), asc(herramientas.codigo))
+}
+
 /** Las que puede llevar una entrega: ni de baja ni perdidas. */
 export async function herramientasQueSePuedenMover() {
   return conJoins()

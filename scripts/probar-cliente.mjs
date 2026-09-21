@@ -10,9 +10,12 @@
  * Carga salidas y un cliente de prueba ("Techint SA"): borralos despues.
  */
 import { chromium } from 'playwright'
+import { diaLibre } from './dia-libre.mjs'
 
 const BASE = process.env.BASE ?? 'http://localhost:3000'
-const HOY = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date())
+// Las salidas de prueba van a un dia libre: hoy puede tener cargadas las de
+// otra corrida y el UNIQUE de fecha + unidad + trabajo las rebotaria.
+let HOY
 let fallas = 0
 const ok = (t) => console.log('  OK   ', t)
 const fallo = (t, e = '') => { fallas++; console.log('  FALLA ', t, e) }
@@ -23,6 +26,9 @@ await page.goto(`${BASE}/ingresar`)
 await page.fill('input[name=email]', 'admin@gruasdaniele.com')
 await page.fill('input[name=password]', 'clave-de-prueba-123')
 await Promise.all([page.waitForURL(`${BASE}/`), page.click('form button')])
+
+HOY = await diaLibre(page, BASE)
+console.log(`  (dia de prueba: ${HOY})`)
 
 async function guardar() {
   await page.click('form button:has-text("Guardar")')

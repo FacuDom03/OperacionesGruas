@@ -22,12 +22,15 @@ export function FormularioEntrega({
   destinos,
   herramientas,
   elegidasAlAbrir,
+  destinoPropuesto = '',
 }: {
   destinos: { valor: string; texto: string; grupo: string }[]
   herramientas: OpcionHerramienta[]
   elegidasAlAbrir: number[]
+  /** Cuando la entrega sale de una salida, viene propuesta la cuadrilla. */
+  destinoPropuesto?: string
 }) {
-  const [destino, setDestino] = useState('')
+  const [destino, setDestino] = useState(destinoPropuesto)
   const [busqueda, setBusqueda] = useState('')
   const [elegidas, setElegidas] = useState<number[]>(elegidasAlAbrir)
 

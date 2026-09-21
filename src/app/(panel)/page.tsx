@@ -7,6 +7,7 @@ import { resumenDelDia } from '@/lib/consultas-checklists'
 import { guardiaDelDia, nombreDePuesto } from '@/lib/guardias'
 import { empresasElegidas } from '@/lib/empresas-elegidas'
 import { formatearHora, hoy, ZONA_HORARIA } from '@/lib/formato'
+import { alertasDeHerramientas } from '@/lib/herramientas'
 import { horasSinRegreso } from '@/lib/livianos'
 import { puede, sesionRequerida } from '@/lib/permisos'
 
@@ -32,6 +33,8 @@ export default async function Tablero() {
   const elegidas = await empresasElegidas()
 
   const filtroEmpresa = elegidas ? inArray(salidas.empresaId, elegidas) : undefined
+
+  const herramientas = await alertasDeHerramientas()
 
   const [delDia, livianos, cuadrillas] = await Promise.all([
     db
@@ -109,7 +112,7 @@ export default async function Tablero() {
         Tablero del día
       </Titulo>
 
-      <div className="mb-4 grid grid-cols-2 gap-3.5 lg:grid-cols-5">
+      <div className="mb-4 grid grid-cols-2 gap-3.5 lg:grid-cols-6">
         <Tarjeta
           etiqueta="Salidas del día"
           valor={delDia.length}
@@ -144,6 +147,18 @@ export default async function Tablero() {
           sobre={String(flota)}
           franja={sinRegreso > 0 ? 'acento' : 'verde'}
           detalle={sinRegreso > 0 ? `${sinRegreso} sin hora de regreso` : 'todos con regreso previsto'}
+        />
+        <Tarjeta
+          etiqueta="Herramientas afuera"
+          valor={herramientas.enPersonas}
+          franja={herramientas.sinConfirmar > 0 || herramientas.hace30Dias > 0 ? 'acento' : 'verde'}
+          detalle={
+            herramientas.sinConfirmar > 0
+              ? `${herramientas.sinConfirmar} sin confirmar`
+              : herramientas.hace30Dias > 0
+                ? `${herramientas.hace30Dias} hace más de 30 días`
+                : 'todas confirmadas'
+          }
         />
       </div>
 

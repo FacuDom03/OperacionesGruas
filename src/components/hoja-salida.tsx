@@ -55,13 +55,15 @@ export type DatosHoja = {
   empresa: { razonSocial: string; nombreCorto: string; cuit: string | null }
   cliente: { razonSocial: string } | null
   cuadrilla: { nombre: string; legajo: string | null; rol: string; esSuplente: boolean }[]
+  /** Las que salieron con este trabajo. Si no hubo, la seccion no se imprime. */
+  herramientas?: { codigo: string; nombre: string; haciaPersona: string | null; haciaUnidad: string | null }[]
   verificador: string | null
   operador: string | null
   auxiliar: string | null
 }
 
 export function HojaDeSalida({
-  salida, equipo, empresa, cliente, cuadrilla, verificador, operador, auxiliar,
+  salida, equipo, empresa, cliente, cuadrilla, herramientas = [], verificador, operador, auxiliar,
 }: DatosHoja) {
   return (
     <main className="mx-auto w-full max-w-[190mm]">
@@ -138,6 +140,32 @@ export function HojaDeSalida({
           </tbody>
         </table>
       </section>
+
+      {herramientas.length > 0 ? (
+        <section className="mt-3">
+          <h2 className="mb-1 text-[9pt] font-bold uppercase tracking-wide">
+            Herramientas ({herramientas.length})
+          </h2>
+          <table className="w-full border-collapse text-[10pt]">
+            <thead>
+              <tr className="border-y border-black/30 text-left text-[8pt] uppercase text-black/60">
+                <th className="py-1 font-medium">Codigo</th>
+                <th className="py-1 font-medium">Herramienta</th>
+                <th className="py-1 font-medium">A cargo de</th>
+              </tr>
+            </thead>
+            <tbody>
+              {herramientas.map((h) => (
+                <tr key={h.codigo} className="border-b border-black/10">
+                  <td className="py-1">{h.codigo}</td>
+                  <td className="py-1">{h.nombre}</td>
+                  <td className="py-1">{h.haciaPersona ?? h.haciaUnidad ?? ''}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      ) : null}
 
       <section className="mt-3 grid grid-cols-3">
         <Dato etiqueta="Verificador">{verificador}</Dato>

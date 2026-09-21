@@ -90,7 +90,8 @@ export async function entregarHerramientas(datos: FormData) {
 
   const destino = leerDestino(String(datos.get('destino') ?? ''))
   const ids = datos.getAll('herramientas').map(Number).filter((n) => Number.isInteger(n) && n > 0)
-  const volverA = '/herramientas/entregar'
+  const salidaId = Number(datos.get('salidaId')) || null
+  const volverA = salidaId ? `/herramientas/entregar?salida=${salidaId}` : '/herramientas/entregar'
 
   const error = (mensaje: string) => redirect(`${volverA}?error=${encodeURIComponent(mensaje)}`)
 
@@ -103,6 +104,7 @@ export async function entregarHerramientas(datos: FormData) {
       destino: destino!,
       herramientaIds: ids,
       usuarioId: Number(sesion.user.id),
+      salidaId,
       observaciones: textoONulo(datos.get('observaciones')),
     })
   } catch (e) {
@@ -110,11 +112,14 @@ export async function entregarHerramientas(datos: FormData) {
   }
 
   revalidatePath('/herramientas')
+  if (salidaId) revalidatePath(`/salidas/${salidaId}`)
 
   const params = new URLSearchParams({ entrega: String(resultado!.entregaId) })
   if (resultado!.token) params.set('token', resultado!.token)
   if (resultado!.rechazadas.length > 0) {
     params.set('rechazadas', resultado!.rechazadas.map((r) => `${r.codigo} (${r.motivo})`).join(', '))
   }
+  // El link de confirmacion se muestra una sola vez, asi que la vuelta es
+  // siempre al panel de herramientas, incluso cuando vino de una salida.
   redirect(`/herramientas?${params}`)
 }

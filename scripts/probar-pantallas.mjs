@@ -70,11 +70,16 @@ const navegador = await chromium.launch()
   await Promise.all([page.waitForURL(`${BASE}/maestros/personal`), page.click('form button:has-text("Guardar")')])
   await esperaTexto(page, '5491155782210', `normaliza y guarda el telefono de ${nombre}`)
 
-  // Alta de un lugar.
-  await page.goto(`${BASE}/maestros/lugares/nuevo`)
-  await page.fill('input[name=codigo]', 'PRUEBA')
-  await page.fill('input[name=nombre]', 'Lugar de prueba')
-  await page.click('form button:has-text("Guardar")')
+  // Alta de un lugar. Si quedo de otra corrida no se vuelve a crear: el codigo
+  // es unico y el alta rebotaria.
+  await page.goto(`${BASE}/maestros/lugares`)
+  await page.waitForLoadState('networkidle')
+  if (!(await page.textContent('body')).includes('PRUEBA')) {
+    await page.goto(`${BASE}/maestros/lugares/nuevo`)
+    await page.fill('input[name=codigo]', 'PRUEBA')
+    await page.fill('input[name=nombre]', 'Lugar de prueba')
+    await page.click('form button:has-text("Guardar")')
+  }
   await esperaTexto(page, 'Lugar de prueba', 'da de alta un lugar')
 
   // Codigo repetido: avisa, no explota.

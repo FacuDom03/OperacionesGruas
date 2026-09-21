@@ -150,7 +150,7 @@ Un botón y la salida le llega a toda la cuadrilla.
 
 ---
 
-# Nuevo · Gestión de herramientas
+# Gestión de herramientas
 
 ### Dónde está cada cosa y quién la tiene
 
@@ -227,6 +227,7 @@ Usa el **mismo canal de WhatsApp** que ya funciona para los checklists.
 - Vehículos livianos con alertas
 - Calendario de mes, semana y día
 - Checklists y guardias
+- **Gestión de herramientas**, con el formulario de confirmación
 - Usuarios, roles y auditoría
 
 **La app está desplegada y en uso.**
@@ -235,9 +236,10 @@ Usa el **mismo canal de WhatsApp** que ya funciona para los checklists.
 
 ## Lo que sigue
 
-1. **Envío por WhatsApp** de las salidas — falta la plantilla aprobada por Meta
-2. **Gestión de herramientas** con confirmación por WhatsApp
-3. Acompañamiento en paralelo con el Excel, una semana, antes de apagarlo
+1. **Envío por WhatsApp** — falta la plantilla aprobada por Meta. Es lo único
+   que falta para que la confirmación de herramientas y el aviso de las salidas
+   salgan solos; hoy el link se manda a mano y funciona igual.
+2. Acompañamiento en paralelo con el Excel, una semana, antes de apagarlo
 
 ---
 

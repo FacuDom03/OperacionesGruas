@@ -64,8 +64,16 @@ cuerpo.includes('hoy') ? ok('marca el dia de hoy') : fallo('no marca hoy')
 await page.goto(`${BASE}/calendario?vista=mes`)
 ;(await page.locator('a[href^="/salidas/"]:not([href*="nueva"])').count()) >= 5 ? ok('la vista mes trae las salidas') : fallo('vista mes vacia')
 
+// Cuantas salidas tiene hoy segun el listado, que es la verdad.
+await page.goto(`${BASE}/salidas?fecha=${HOY}`)
+await page.waitForLoadState('networkidle')
+const deHoy = await page.locator('table tbody tr').count()
+
 await page.goto(`${BASE}/calendario?vista=dia&fecha=${HOY}`)
-;(await page.locator('a[href^="/salidas/"]:not([href*="nueva"])').count()) === 2 ? ok('la vista dia trae solo las de hoy') : fallo('vista dia', await page.locator('a[href^="/salidas/"]:not([href*="nueva"])').count())
+const enElDia = await page.locator('a[href^="/salidas/"]:not([href*="nueva"])').count()
+enElDia === deHoy
+  ? ok(`la vista dia trae las mismas que el listado (${deHoy})`)
+  : fallo('vista dia', `${enElDia} en el calendario y ${deHoy} en el listado`)
 
 // Navegar a la semana anterior y volver
 await page.goto(`${BASE}/calendario`)

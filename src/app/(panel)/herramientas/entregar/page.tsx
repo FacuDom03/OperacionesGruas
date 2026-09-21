@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { and, asc, eq } from 'drizzle-orm'
+import { asc, eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { equipos, lugares, personal } from '@/db/schema'
+import { equipos, lugares, personal, salidaPersonal, salidas } from '@/db/schema'
 import { entregarHerramientas } from '../acciones'
 import { Boton, Panel, Titulo } from '@/components/ui'
 import { FormularioEntrega, type OpcionHerramienta } from '@/components/formulario-entrega'
@@ -13,10 +13,10 @@ export const dynamic = 'force-dynamic'
 export default async function Entregar({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; herramienta?: string }>
+  searchParams: Promise<{ error?: string; herramienta?: string; salida?: string }>
 }) {
   await permisoRequerido('mover_herramientas')
-  const { error, herramienta } = await searchParams
+  const { error, herramienta, salida } = await searchParams
 
   const [listaPersonal, listaEquipos, listaLugares, disponibles] = await Promise.all([
     db.select().from(personal).where(eq(personal.activo, true)).orderBy(asc(personal.apellidoNombre)),
@@ -56,12 +56,41 @@ export default async function Entregar({
 
   const elegidasAlAbrir = herramienta && Number(herramienta) ? [Number(herramienta)] : []
 
+  // Si la entrega sale de una salida de trabajo, queda enganchada a ella y se
+  // propone la cuadrilla: es quien se lleva las herramientas.
+  const salidaId = Number(salida) || null
+  const laSalida = salidaId
+    ? (await db.select().from(salidas).where(eq(salidas.id, salidaId)).limit(1))[0] ?? null
+    : null
+
+  const cuadrilla = laSalida
+    ? await db
+      .select({ id: personal.id, nombre: personal.apellidoNombre, rol: salidaPersonal.rol })
+      .from(salidaPersonal)
+      .innerJoin(personal, eq(salidaPersonal.personalId, personal.id))
+      .where(eq(salidaPersonal.salidaId, laSalida.id))
+      .orderBy(asc(salidaPersonal.rol))
+    : []
+
+  // El que figure primero de la cuadrilla; si no hay nadie, la unidad.
+  const propuesto = cuadrilla[0]
+    ? escribirDestino({ tipo: 'persona', id: cuadrilla[0].id })
+    : laSalida
+      ? escribirDestino({ tipo: 'unidad', id: laSalida.equipoId })
+      : ''
+
   return (
     <main className="mx-auto w-full max-w-[860px] flex-grow px-6 py-5">
-      <Link href="/herramientas" className="enlace text-[12.5px]">‹ Volver a herramientas</Link>
+      <Link href={salidaId ? `/salidas/${salidaId}` : '/herramientas'} className="enlace text-[12.5px]">
+        {salidaId ? '‹ Volver a la salida' : '‹ Volver a herramientas'}
+      </Link>
 
       <div className="mt-2">
-        <Titulo bajada="Una entrega puede llevar varias herramientas a la misma persona">
+        <Titulo
+          bajada={laSalida
+            ? `Para la salida ${laSalida.numero}. Queda enganchada a ese trabajo.`
+            : 'Una entrega puede llevar varias herramientas a la misma persona'}
+        >
           Entregar herramientas
         </Titulo>
       </div>
@@ -72,7 +101,14 @@ export default async function Entregar({
 
       <Panel>
         <form action={entregarHerramientas} className="space-y-5 p-6">
-          <FormularioEntrega destinos={destinos} herramientas={opciones} elegidasAlAbrir={elegidasAlAbrir} />
+          {laSalida ? <input type="hidden" name="salidaId" value={laSalida.id} /> : null}
+
+          <FormularioEntrega
+            destinos={destinos}
+            herramientas={opciones}
+            elegidasAlAbrir={elegidasAlAbrir}
+            destinoPropuesto={propuesto}
+          />
 
           <div className="flex items-center gap-3 border-t border-[var(--color-borde)] pt-4">
             <Boton type="submit">Registrar entrega</Boton>

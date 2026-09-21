@@ -124,6 +124,42 @@ cierren, averiguá por qué cambió.
 - `scripts/probar-auditoria.mjs`, y `/auditoria` y `/maestros/usuarios` sumados
   al barrido de `probar-todo.mjs`.
 
+### Herramientas (pedido del 21/09)
+
+Capítulo 14 del spec, que se escribió para esto. **No cuelga de la salida**: lo
+que se guarda es la custodia —quién o qué tiene la herramienta ahora— y la
+salida es uno de los momentos en que esa custodia cambia. Colgarla de la salida
+dejaba la herramienta sin ubicación al día siguiente, y no cubría las que viven
+arriba de una unidad ni las que están en el taller.
+
+- Tres tablas: `herramientas` con la custodia actual cacheada, `herramienta_entregas`
+  (el acta, que puede llevar varias herramientas y es lo que se confirma de una
+  sola vez) y `herramienta_movimientos`, una línea por herramienta con de dónde
+  venía. Migración `0002`.
+- El historial y la custodia cacheada se escriben en la misma transacción. Si
+  discrepan, el listado miente, y el listado es todo el punto.
+- `/herramientas`: listado con dónde está cada una y desde cuándo, filtros,
+  tarjetas de las que están afuera, sin confirmar y sin devolver hace más de 30
+  días. La ficha tiene el historial completo.
+- `/herramientas/entregar`: el acta. Avisa si lo que entregás lo tiene otro,
+  pero no bloquea, igual que el solapamiento de personal.
+- `/confirmar/[token]`: el formulario del empleado, público y pensado para el
+  teléfono. La credencial es el token del link; en la base queda solo el hash.
+  Vale hasta que se confirma o hasta los 30 días.
+- En la salida: bloque «Herramientas de esta salida», que entrega con la
+  cuadrilla propuesta, y las herramientas salen en la hoja que firma el chofer.
+- La tarjeta del tablero.
+
+**n8n todavía no manda el link**: hoy se copia y se manda a mano. Cuando se
+conecte, es un POST más al webhook; nada de esto cambia.
+
+### La pantalla de sin permiso
+
+`permisoRequerido` tiraba un `Error` con el motivo. En el build de producción
+React borra el mensaje de los errores del servidor, así que el usuario veía un
+párrafo sobre *digests*. Ahora manda a `/sin-permiso`, que dice qué rol tiene y
+cuál hace falta. Aplica a toda la app, no solo a herramientas.
+
 ## Lo que falta
 
 ### El orden cambió: WhatsApp va último
@@ -173,10 +209,24 @@ estados. El orden queda: **6 (cierre) → 2 (WhatsApp)**. La 4 (checklists, lado
 - **El registro de cambios no se purga.** La tabla `auditoria` crece para
   siempre. Con el volumen de la empresa no es problema por años, pero si algún
   día molesta, se archiva por fecha, no se borra.
-- **Pedido nuevo del cliente, sin empezar: gestión de herramientas.** Inventario
-  con estado y ubicación, asignación a persona, unidad u obra, y un formulario
-  por WhatsApp para que el empleado confirme que la recibió. Está descripto en
-  `docs/presentacion-venta.md`; no hay nada construido.
+- **Gestión de herramientas: hecha, salvo el envío.** Falta que n8n mande el
+  link de confirmación; hasta entonces se copia y se manda a mano. Ver más
+  arriba.
+
+### Pendientes que dejó la gestión de herramientas
+
+- **Falta el listado de herramientas de la empresa** para cargar el inventario.
+  Sin eso el panel está vacío.
+- **Los códigos son `GDH` + tres dígitos**, mismo criterio que los internos.
+  Está por definir si los pone la empresa o los genera el sistema.
+- **El token de confirmación no se puede reemitir.** Si se pierde el link, hay
+  que registrar la entrega de nuevo. Se resuelve con un botón de «reenviar»
+  cuando esté n8n, que es cuando de verdad va a hacer falta.
+- **La entrega no se puede anular.** Si se cargó mal, se arregla con otro
+  movimiento, que queda en el historial. Es a propósito, pero si molesta hay que
+  decidir qué hacer.
+- **Las alertas no avisan solas**: se ven en el tablero y en el panel, pero
+  nadie recibe nada. Eso también espera a n8n.
 
 ## Decisiones ya tomadas (no las revisites sin preguntar)
 
