@@ -3,6 +3,19 @@ import { db } from '@/db'
 import { checklistAdjuntos, checklistItems, checklists, equipos, personal } from '@/db/schema'
 import { normalizarInterno, normalizarTelefono } from '@/lib/formato'
 
+/**
+ * JSON con las claves ordenadas. Hace falta para comparar lo que llega contra
+ * lo que esta guardado: `jsonb` no conserva el orden en que vinieron las
+ * claves, asi que dos payloads iguales pueden serializarse distinto.
+ */
+function canonico(valor: unknown): string {
+  return JSON.stringify(valor, (_clave, v) =>
+    v && typeof v === 'object' && !Array.isArray(v)
+      ? Object.fromEntries(Object.keys(v as Record<string, unknown>).sort().map((k) => [k, (v as Record<string, unknown>)[k]]))
+      : v,
+  )
+}
+
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
@@ -80,10 +93,24 @@ export async function POST(pedido: Request) {
     payload: cuerpo,
   }
 
+  // Si ya habia uno de ese dia para esa unidad y el flujo manda algo distinto,
+  // lo revisado deja de valer: mantenimiento reviso otro contenido. Un reenvio
+  // identico (un reintento de n8n) no toca la revision.
+  const [anterior] = await db
+    .select({ payload: checklists.payload, revisadoAt: checklists.revisadoAt })
+    .from(checklists)
+    .where(and(eq(checklists.fecha, fecha), eq(checklists.equipoId, equipo.id)))
+    .limit(1)
+
+  const cambio = anterior && canonico(anterior.payload) !== canonico(cuerpo)
+  const aGuardar = cambio && anterior.revisadoAt
+    ? { ...valores, revisadoPor: null, revisadoAt: null }
+    : valores
+
   const [guardado] = await db
     .insert(checklists)
     .values(valores)
-    .onConflictDoUpdate({ target: [checklists.fecha, checklists.equipoId], set: valores })
+    .onConflictDoUpdate({ target: [checklists.fecha, checklists.equipoId], set: aGuardar })
     .returning()
 
   // Los items y adjuntos se reemplazan: lo ultimo que mando el flujo es lo que vale.

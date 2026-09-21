@@ -25,10 +25,10 @@ const nav = await chromium.launch()
 const ctx = await nav.newContext({ viewport: { width: 1440, height: 900 } })
 const page = await ctx.newPage()
 
-async function entrar(hoja, email) {
+async function entrar(hoja, email, clave = 'clave-de-prueba-123') {
   await hoja.goto(`${BASE}/ingresar`)
   await hoja.fill('input[name=email]', email)
-  await hoja.fill('input[name=password]', 'clave-de-prueba-123')
+  await hoja.fill('input[name=password]', clave)
   await Promise.all([hoja.waitForURL(`${BASE}/`), hoja.click('form button')])
 }
 
@@ -149,7 +149,7 @@ tiene(cuerpo, 'Usuarios') ? ok('maestros linkea los usuarios') : fallo('maestros
 
 // ── un rol que no es admin no entra ──────────────────────────────────────
 const espia = await (await nav.newContext({ viewport: { width: 1440, height: 900 } })).newPage()
-await entrar(espia, 'consulta@gruasdaniele.com')
+await entrar(espia, 'consulta@gruasdaniele.com', 'consulta-prueba-123')
 await espia.goto(`${BASE}/auditoria`)
 await espia.waitForLoadState('networkidle')
 const cuerpoEspia = await espia.locator('body').innerText()

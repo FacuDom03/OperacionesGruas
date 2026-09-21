@@ -81,6 +81,24 @@ await page.click('button:has-text("Marcar como revisado")')
 await page.waitForTimeout(1500)
 ;(await page.textContent('body')).includes('Revisado el') ? ok('queda marcado como revisado') : fallo('no se marcó')
 
+// ── la revision vale para lo que se reviso ──────────────────────────────
+// El que quedo marcado recien es el de GDU505, con el cuerpo de `repetido`.
+// Un reintento identico de n8n no tiene que borrar la revision.
+await mandar({ interno: 'GDU505', items: [{ item: 'Frenos', ok: true }] })
+await page.goto(`${BASE}/checklists?fecha=${HOY}`)
+await page.click('text=GDU505')
+await page.waitForTimeout(1200)
+;(await page.textContent('body')).includes('Revisado el')
+  ? ok('un reenvio identico no borra la revision') : fallo('el reenvio identico borro la revision')
+
+// Pero si el chofer manda otra cosa, lo revisado ya no es lo que hay.
+await mandar({ interno: 'GDU505', items: [{ item: 'Frenos', ok: false, comentario: 'hacen ruido' }] })
+await page.goto(`${BASE}/checklists?fecha=${HOY}`)
+await page.click('text=GDU505')
+await page.waitForTimeout(1200)
+;(await page.textContent('body')).includes('Marcar como revisado')
+  ? ok('un reenvio con otro contenido vuelve a pedir revision') : fallo('siguio figurando como revisado')
+
 // consulta no puede marcar
 const page2 = await (await nav.newContext()).newPage()
 await page2.goto(`${BASE}/ingresar`)

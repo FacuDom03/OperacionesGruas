@@ -12,7 +12,7 @@ import { chromium } from 'playwright'
 import { writeFileSync } from 'node:fs'
 
 const BASE = process.env.BASE ?? 'http://localhost:3000'
-const HOY = process.env.HOY
+const HOY = process.env.HOY ?? new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date())
 let fallas = 0
 const ok = (t) => console.log('  OK   ', t)
 const fallo = (t, e = '') => { fallas++; console.log('  FALLA ', t, e) }

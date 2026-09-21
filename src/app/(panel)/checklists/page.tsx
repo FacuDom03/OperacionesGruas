@@ -86,8 +86,6 @@ export default async function Checklists({
             </div>
           }
         >
-          {visibles.length === 0 && (filtro === 'pendientes' || resumen.recibidos.length === 0) ? null : null}
-
           <ul className="divide-y divide-[var(--color-borde)]">
             {visibles.map((r) => {
               const observado = r.resultado === 'con_observacion'

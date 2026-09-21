@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 16/09/2026
+Última actualización: 21/09/2026
 
 Este archivo dice qué está hecho y qué sigue. Actualizalo cuando termines una fase.
 
@@ -99,14 +99,39 @@ cierren, averiguá por qué cambió.
 - Fase 5 — calendario de trabajos (`/calendario`) con vistas mes, semana y día,
   color por tipo de unidad y borde punteado para las salidas a confirmar.
 
+### Fase 6 — cierre
+
+- `/auditoria`, solo para admin: el registro de cambios que ya se escribía pero
+  no se podía ver. Filtros por entidad, acción, usuario y rango de fechas (que
+  aplican solos, sin botón), paginado de a 50, y el detalle campo por campo con
+  el antes y el después. Los identificadores se muestran como número a propósito:
+  es lo que tenía la fila en ese momento, el nombre pudo cambiar después.
+- Guardar sin cambiar nada ya no deja línea: antes cada «Guardar» escribía una
+  edición vacía y tapaba las que importan.
+- `/maestros` ahora linkea guardias, usuarios y el registro. Antes contaba las
+  guardias y los usuarios pero no los mostraba.
+- `scripts/respaldo.sh` (`npm run respaldo`): volcado de la base con rotación por
+  días. Comprueba que el archivo se pueda leer **antes** de borrar los viejos,
+  así nunca se queda sin ninguno bueno. Corre en el VPS, con el `pg_dump` del
+  contenedor de Postgres: el del host suele ser de otra versión.
+  Probado de punta a punta, restaurando en una base aparte: dio 10 empresas,
+  7 lugares, 55 personas y 96 equipos.
+- `docs/manual.md`: el manual corto para quien va a cargar las salidas.
+- Un checklist reenviado **con otro contenido** pierde la marca de revisado: lo
+  que mantenimiento reviso ya no es lo que hay. Un reenvio identico no la toca.
+  La comparacion es con las claves ordenadas porque `jsonb` no conserva el orden
+  en que vinieron.
+- `scripts/probar-auditoria.mjs`, y `/auditoria` y `/maestros/usuarios` sumados
+  al barrido de `probar-todo.mjs`.
+
 ## Lo que falta
 
 ### El orden cambió: WhatsApp va último
 
 La fase 2 del spec (WhatsApp) pasa al final, por decisión del 16/09. El flujo de
 n8n lo configura la empresa; de la app salen el POST al webhook y el endpoint de
-estados. El orden queda: **6 (cierre) → 2 (WhatsApp)**. La 4 (checklists, lado app) y la
-5 (calendario) ya están hechas. No lo "corrijas" al orden del capítulo 12 del spec.
+estados. El orden queda: **6 (cierre) → 2 (WhatsApp)**. La 4 (checklists, lado app), la
+5 (calendario) y la 6 ya están hechas. No lo "corrijas" al orden del capítulo 12 del spec.
 
 ### Pendientes que dejó la fase 1
 
@@ -140,6 +165,18 @@ estados. El orden queda: **6 (cierre) → 2 (WhatsApp)**. La 4 (checklists, lado
 - **`uso_livianos` no tiene un único por (fecha, unidad)**, así que una unidad
   puede tener más de un movimiento en el día. La grilla lo soporta; si operaciones
   prefiere una sola fila por día, hay que agregar la restricción.
+
+### Pendientes que dejó la fase 6
+
+- **Los respaldos hay que dejarlos corriendo en el VPS.** El script está y se
+  probó, pero la línea de cron la pone quien tiene el SSH. Está en DEPLOY.md.
+- **El registro de cambios no se purga.** La tabla `auditoria` crece para
+  siempre. Con el volumen de la empresa no es problema por años, pero si algún
+  día molesta, se archiva por fecha, no se borra.
+- **Pedido nuevo del cliente, sin empezar: gestión de herramientas.** Inventario
+  con estado y ubicación, asignación a persona, unidad u obra, y un formulario
+  por WhatsApp para que el empleado confirme que la recibió. Está descripto en
+  `docs/presentacion-venta.md`; no hay nada construido.
 
 ## Decisiones ya tomadas (no las revisites sin preguntar)
 
