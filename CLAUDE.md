@@ -52,6 +52,8 @@ No cambies ninguna de estas elecciones sin preguntar.
 - Las rutas `/print/...` requieren sesión válida o un token de un solo uso; nunca quedan públicas.
 - Los PDF generados se guardan en `PDF_STORAGE_PATH` con el número de salida como nombre (`SAL-2026-0873.pdf`) para poder adjuntarlos al WhatsApp sin regenerarlos.
 - Chromium ya viene instalado en la imagen Docker, en `/usr/bin/chromium`. Usá `PUPPETEER_EXECUTABLE_PATH` y lanzá con `--no-sandbox --disable-dev-shm-usage`.
+- **Las hojas impresas usan el mismo sistema de diseño que la pantalla**: `.hdg` para títulos y etiquetas, `.mono` para internos, horas, números y patentes. Si no, el PDF no se parece a la app.
+- **Ninguna ruta `/print` puede depender de salir a internet.** Las tipografías las sirve la app desde `public/fuentes` (`node scripts/bajar-fuentes.mjs`); si vuelven a cargarse desde Google, el PDF sale con otra tipografía o se cuelga esperando.
 
 ### WhatsApp
 
@@ -96,6 +98,7 @@ npm run db:studio      # explorador visual de la base
 npm run import:excel   # carga los maestros desde docs/fuentes/
 npm run usuario        # da de alta un usuario: -- --email x@y.com --rol admin
 npm run respaldo       # volcado de la base: ver el capitulo de respaldos de DEPLOY.md
+npm run fuentes        # vuelve a bajar las tipografias a public/fuentes
 npm test               # comprueba las normalizaciones de telefono, interno y CUIT
 npm run build          # build de producción
 npm run lint

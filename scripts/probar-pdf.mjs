@@ -42,6 +42,26 @@ hoja.includes('Salida de trabajo') && hoja.includes(numero)
   ? ok('la hoja tiene la cabecera y el numero') : fallo('contenido de la hoja')
 hoja.includes('Conformidad del cliente') ? ok('tiene las tres firmas') : fallo('faltan las firmas')
 
+// ── las tipografias ──────────────────────────────────────────────────────
+// Si no cargan, el PDF sale con la que el navegador tenga a mano y no se
+// parece a la pantalla. Paso dos veces: una por el <link> a Google que no se
+// podia resolver, y otra porque el middleware mandaba los .woff2 a /ingresar.
+const woff = await ctx.request.get(`${BASE}/fuentes/ibm-plex-sans-variable.woff2`, { maxRedirects: 0 })
+woff.status() === 200
+  ? ok('las tipografias se sirven desde la app') : fallo('la tipografia no se sirve', woff.status())
+
+// Las familias que el navegador termino bajando de verdad. No se usa
+// fonts.check() porque responde por peso, y la hoja no usa todos los pesos.
+await page.evaluate(() => document.fonts.ready)
+const familias = await page.evaluate(() =>
+  [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family))
+const faltan = ['Barlow Condensed', 'IBM Plex Sans', 'IBM Plex Mono'].filter((f) => !familias.includes(f))
+faltan.length === 0
+  ? ok('la hoja carga las tres familias del mockup') : fallo('faltan tipografias', faltan.join(', '))
+
+hoja.includes('Teléfono') && hoja.includes('Gestión')
+  ? ok('los textos de la hoja van con tilde') : fallo('la hoja perdio los acentos')
+
 // el PDF de la salida
 const res = await ctx.request.get(`${BASE}/api/pdf/salida/${id}`, { timeout: 90000 })
 const cuerpo = await res.body()

@@ -50,19 +50,19 @@ export default async function ImprimirLivianosMes({
           key={fecha}
           fecha={fecha}
           movimientos={delDia}
-          titulo={`Vehiculos livianos — ${nombreMes}`}
+          titulo={`Vehículos livianos — ${nombreMes}`}
         />
       ))}
 
       <main className="w-full">
         <header className="border-b-2 border-black pb-2">
-          <h1 className="text-[14pt] font-bold leading-tight">Totales por unidad</h1>
+          <h1 className="hdg text-[15pt] font-bold leading-tight">Totales por unidad</h1>
           <p className="text-[10pt]">{nombreMes}</p>
         </header>
 
         <table className="mt-3 w-full border-collapse text-[10pt]">
           <thead>
-            <tr className="border-y border-black/30 text-left text-[7pt] uppercase text-black/60">
+            <tr className="hdg border-y border-black/30 text-left text-[7.5pt] text-black/60">
               <th className="py-1 font-medium">Unidad</th>
               <th className="py-1 font-medium">Movimientos</th>
               <th className="py-1 font-medium">Sin hora de regreso</th>
@@ -74,9 +74,9 @@ export default async function ImprimirLivianosMes({
             ) : (
               [...totales.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([interno, t]) => (
                 <tr key={interno} className="border-b border-black/10">
-                  <td className="py-1">{interno}</td>
-                  <td className="py-1">{t.salidas}</td>
-                  <td className="py-1">{t.sinRegreso || ''}</td>
+                  <td className="mono py-1">{interno}</td>
+                  <td className="mono py-1">{t.salidas}</td>
+                  <td className="mono py-1">{t.sinRegreso || ''}</td>
                 </tr>
               ))
             )}

@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 21/09/2026
+Última actualización: 22/09/2026
 
 Este archivo dice qué está hecho y qué sigue. Actualizalo cuando termines una fase.
 
@@ -159,6 +159,36 @@ conecte, es un POST más al webhook; nada de esto cambia.
 React borra el mensaje de los errores del servidor, así que el usuario veía un
 párrafo sobre *digests*. Ahora manda a `/sin-permiso`, que dice qué rol tiene y
 cuál hace falta. Aplica a toda la app, no solo a herramientas.
+
+### Los PDF (22/09)
+
+Salían con una tipografía que no era la del mockup y sin los acentos. Tres
+causas, todas distintas:
+
+1. **Las tipografías venían de Google.** El `<link>` a `fonts.googleapis.com`
+   estaba en el layout raíz, así que el PDF dependía de que el contenedor
+   pudiera salir a internet **en el momento de generarlo**. Si no podía, la
+   hoja salía con la que el navegador tuviera a mano, y encima
+   `waitUntil: 'networkidle0'` se quedaba esperando un pedido que no
+   contestaba. Ahora las sirve la app desde `public/fuentes`, bajadas con
+   `node scripts/bajar-fuentes.mjs` (172 kB, solo el subconjunto latin).
+2. **El middleware se comía los `.woff2`.** El `matcher` solo dejaba afuera
+   `_next/static`, el favicon, `.png` y `.svg`, así que el pedido de la
+   tipografía se iba a `/ingresar` con un 307. Ahora quedan afuera `/fuentes`
+   y las extensiones de archivos estáticos.
+3. **Las hojas no usaban el sistema de diseño.** Estaban con `font-bold` y
+   `uppercase` sueltos en vez de `.hdg` y `.mono`, así que aunque las
+   tipografías cargaran, el PDF no se parecía a la pantalla. Y los textos
+   estaban escritos sin tilde: «Telefono», «Gestion», «En ejecucion»,
+   «Parte del dia», «Vehiculos livianos».
+
+`scripts/probar-pdf.mjs` ahora comprueba que el `.woff2` responda 200 sin
+redirección, que la hoja cargue las tres familias y que los textos lleven
+tilde. Las tres cosas fallaban antes y ninguna se veía en el HTML.
+
+**Visto una vez, sin poder reproducir:** un error de hidratación de React
+(#418) en `/maestros/equipos` durante un barrido. No volvió a aparecer en 6
+intentos ni en los barridos siguientes. Queda anotado.
 
 ## Lo que falta
 

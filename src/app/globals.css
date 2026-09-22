@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* Las tres familias del mockup, servidas por la app. Ver scripts/bajar-fuentes.mjs. */
+@import "./fuentes.css";
 
 /**
  * Sistema de diseño tomado del mockup del canvas.

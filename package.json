@@ -13,6 +13,7 @@
     "import:excel": "tsx scripts/importar-excel.ts",
     "usuario": "tsx scripts/crear-usuario.ts",
     "respaldo": "bash scripts/respaldo.sh",
+    "fuentes": "node scripts/bajar-fuentes.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",

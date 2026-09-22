@@ -23,13 +23,13 @@ export function GrillaLivianosImpresa({
   return (
     <main className="w-full">
       <header className="border-b-2 border-black pb-2">
-        <h1 className="text-[14pt] font-bold leading-tight">{titulo ?? 'Vehiculos livianos'}</h1>
-        <p className="text-[10pt]">{formatearFecha(fecha)}</p>
+        <h1 className="hdg text-[15pt] font-bold leading-tight">{titulo ?? 'Vehículos livianos'}</h1>
+        <p className="mono text-[10pt]">{formatearFecha(fecha)}</p>
       </header>
 
       <table className="mt-3 w-full border-collapse text-[9pt]">
         <thead>
-          <tr className="border-y border-black/30 text-left text-[7pt] uppercase text-black/60">
+          <tr className="hdg border-y border-black/30 text-left text-[7.5pt] text-black/60">
             <th className="py-1 font-medium">Unidad</th>
             <th className="py-1 font-medium">Patente</th>
             <th className="py-1 font-medium">Personal</th>
@@ -48,13 +48,13 @@ export function GrillaLivianosImpresa({
           ) : (
             movimientos.map((m) => (
               <tr key={m.id} className="border-b border-black/10">
-                <td className="py-1">{m.interno}</td>
-                <td className="py-1">{m.patente ?? ''}</td>
+                <td className="mono py-1">{m.interno}</td>
+                <td className="mono py-1">{m.patente ?? ''}</td>
                 <td className="py-1">{m.persona ?? ''}</td>
                 <td className="py-1">{m.lugarSalida ?? ''}</td>
-                <td className="py-1">{formatearHora(m.horaSalida)}</td>
+                <td className="mono py-1">{formatearHora(m.horaSalida)}</td>
                 <td className="py-1">{m.lugarLlegada ?? ''}</td>
-                <td className="py-1">
+                <td className="mono py-1">
                   {m.horaLlegada ? formatearHora(m.horaLlegada) : <span className="text-black/50">sin regreso</span>}
                 </td>
                 <td className="py-1">{m.uso ?? ''}</td>
