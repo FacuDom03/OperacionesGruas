@@ -56,7 +56,17 @@ export default async function ImprimirDia({
     )
     .orderBy(asc(salidas.horaSalida), asc(equipos.interno), asc(salidas.ordenDia))
 
-  const hojas = await Promise.all(resumen.map((s) => datosDeSalida(s.id)))
+  // Una hoja que falla no puede llevarse puesto el parte entero: el que lo
+  // imprime a las 6 de la mañana necesita el resto igual. La que falle sale
+  // marcada, y el motivo queda en el log del servidor.
+  const hojas = await Promise.all(resumen.map(async (s) => {
+    try {
+      return { numero: s.numero, datos: await datosDeSalida(s.id) }
+    } catch (error) {
+      console.error(`[parte del dia] no se pudo armar la hoja de ${s.numero}:`, error)
+      return { numero: s.numero, datos: null, fallo: true as const }
+    }
+  }))
 
   return (
     <>
@@ -102,7 +112,23 @@ export default async function ImprimirDia({
         </p>
       </main>
 
-      {hojas.map((hoja) => (hoja ? <HojaDeSalida key={hoja.salida.numero} {...hoja} /> : null))}
+      {hojas.map((hoja) => {
+        if (hoja.datos) return <HojaDeSalida key={hoja.numero} {...hoja.datos} />
+        if (!hoja.fallo) return null
+        return (
+          <main key={hoja.numero} className="mx-auto w-full max-w-[190mm]">
+            <header className="border-b-2 border-black pb-2">
+              <h1 className="hdg text-[16pt] font-bold leading-tight">{hoja.numero}</h1>
+            </header>
+            <p className="mt-4 text-[11pt]">
+              No se pudo armar esta hoja. El resto del parte está completo.
+            </p>
+            <p className="mt-1 text-[9pt] text-black/60">
+              El motivo quedó en el log del servidor. Imprimila aparte desde la salida.
+            </p>
+          </main>
+        )
+      })}
     </>
   )
 }

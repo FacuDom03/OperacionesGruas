@@ -28,7 +28,29 @@ export async function pdfDeRuta(
 
   try {
     const pagina = await navegador.newPage()
-    await pagina.goto(url, { waitUntil: 'networkidle0', timeout: 30_000 })
+
+    // Lo que la ruta escriba en la consola del navegador se pasa al log del
+    // servidor: si la hoja falla, el motivo tiene que quedar en algun lado.
+    pagina.on('pageerror', (e) => console.error('[pdf] error en la pagina:', ruta, String(e)))
+
+    const respuesta = await pagina.goto(url, { waitUntil: 'networkidle0', timeout: 30_000 })
+
+    if (!respuesta || !respuesta.ok()) {
+      throw new Error(`La hoja ${ruta} respondio ${respuesta?.status() ?? 'sin respuesta'}.`)
+    }
+
+    // Una pantalla de error de Next tambien se imprime: el PDF sale con 200,
+    // empieza con %PDF- y adentro dice "Application error". Antes de armarlo
+    // hay que mirar que se renderizo de verdad.
+    const problema = await pagina.evaluate(() => {
+      const texto = document.body?.innerText ?? ''
+      const roto = /Application error|server-side exception|No se pudo mostrar|This page could not be found/i
+      return roto.test(texto) ? texto.slice(0, 300) : null
+    })
+
+    if (problema) {
+      throw new Error(`La hoja ${ruta} no se pudo armar. La pagina dice: ${problema.replace(/\s+/g, ' ').trim()}`)
+    }
 
     return Buffer.from(
       await pagina.pdf({
@@ -41,6 +63,39 @@ export async function pdfDeRuta(
   } finally {
     await navegador.close()
   }
+}
+
+/**
+ * Arma el PDF y lo devuelve como respuesta, o explica en castellano por que no
+ * se pudo. Sin esto, un error al armar la hoja llega al usuario como una
+ * pestaña en blanco: el <a target="_blank"> no muestra el 500 de Next.
+ */
+export async function respuestaPdf(
+  ruta: string,
+  nombre: string,
+  opciones: { horizontal?: boolean; consulta?: string } = {},
+): Promise<Response> {
+  let pdf: Buffer
+  try {
+    pdf = await pdfDeRuta(ruta, opciones)
+  } catch (error) {
+    console.error('[pdf] no se pudo armar', ruta, error)
+    const detalle = error instanceof Error ? error.message : String(error)
+    return new Response(
+      `No se pudo armar el PDF.\n\n${detalle}\n\n`
+      + 'Si vuelve a pasar, avisá con la fecha y la hora: el motivo queda en el log del servidor.',
+      { status: 500, headers: { 'content-type': 'text/plain; charset=utf-8' } },
+    )
+  }
+
+  await guardarPdf(nombre, pdf)
+
+  return new Response(new Uint8Array(pdf), {
+    headers: {
+      'content-type': 'application/pdf',
+      'content-disposition': `inline; filename="${nombre}.pdf"`,
+    },
+  })
 }
 
 /**

@@ -77,6 +77,18 @@ res2.status() === 200 && cuerpo2.subarray(0, 5).toString() === '%PDF-'
   ? ok(`el parte del dia sale en PDF (${(cuerpo2.length / 1024).toFixed(0)} kB)`) : fallo('parte del dia', res2.status())
 writeFileSync('parte-del-dia.pdf', cuerpo2)
 
+// Un PDF con una pantalla de error adentro igual empieza con %PDF- y sale con
+// 200: por eso hay que mirar lo que se renderizo, no solo el codigo.
+await page.goto(`${BASE}/print/dia/${FECHA}`)
+const parte = await page.locator('body').innerText()
+const PANTALLA_DE_ERROR = /Application error|server-side exception|No se pudo mostrar/i
+PANTALLA_DE_ERROR.test(parte)
+  ? fallo('el parte del dia se renderizo con una pantalla de error')
+  : ok('el parte del dia no lleva pantallas de error')
+parte.includes('No se pudo armar esta hoja')
+  ? fallo('alguna hoja del parte no se pudo armar')
+  : ok('todas las hojas del parte se armaron')
+
 await nav.close()
 console.log(fallas === 0 ? '\n  todo bien\n' : `\n  ${fallas} fallas\n`)
 process.exit(fallas === 0 ? 0 : 1)

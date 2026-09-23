@@ -1,4 +1,4 @@
-import { guardarPdf, pdfDeRuta } from '@/lib/pdf'
+import { respuestaPdf } from '@/lib/pdf'
 import { sesionRequerida } from '@/lib/permisos'
 
 export const dynamic = 'force-dynamic'
@@ -16,13 +16,5 @@ export async function GET(pedido: Request, { params }: { params: Promise<{ fecha
   const empresas = new URL(pedido.url).searchParams.get('empresas')
   const filtro = empresas && /^[\d,]+$/.test(empresas) ? `?empresas=${empresas}` : ''
 
-  const pdf = await pdfDeRuta(`/print/dia/${fecha}`, { consulta: filtro })
-  await guardarPdf(`parte-del-dia-${fecha}`, pdf)
-
-  return new Response(new Uint8Array(pdf), {
-    headers: {
-      'content-type': 'application/pdf',
-      'content-disposition': `inline; filename="parte-del-dia-${fecha}.pdf"`,
-    },
-  })
+  return respuestaPdf(`/print/dia/${fecha}`, `parte-del-dia-${fecha}`, { consulta: filtro })
 }
