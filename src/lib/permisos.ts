@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation'
+import { eq } from 'drizzle-orm'
 import { auth } from '@/auth'
 import type { Rol } from '@/auth.config'
+import { db } from '@/db'
+import { usuarios } from '@/db/schema'
 
 /**
  * Permisos por rol, capitulo 10 del spec. Se verifican siempre en el servidor:
@@ -34,11 +37,46 @@ export function puede(rol: Rol, accion: Accion): boolean {
   return PERMISOS[rol].includes(accion)
 }
 
-/** Devuelve la sesion o manda a la pantalla de ingreso. */
-export async function sesionRequerida() {
+/**
+ * El usuario de la sesion, tal como esta en la base **ahora**.
+ *
+ * La sesion es un JWT: lleva el rol y el id de cuando la persona entro, y no
+ * se entera de nada de lo que pase despues. Si la desactivan o le cambian el
+ * rol, el token sigue sirviendo igual hasta que vence. Por eso cada pedido
+ * pregunta por la fila: es una consulta por id sobre una tabla de pocas filas.
+ *
+ * Devuelve null si no hay sesion, si el usuario ya no existe o si lo dieron de
+ * baja.
+ */
+export async function usuarioDeLaSesion() {
   const sesion = await auth()
-  if (!sesion?.user) redirect('/ingresar')
-  return sesion
+  if (!sesion?.user?.id) return null
+
+  const [usuario] = await db
+    .select({ id: usuarios.id, email: usuarios.email, rol: usuarios.rol, activo: usuarios.activo })
+    .from(usuarios)
+    .where(eq(usuarios.id, Number(sesion.user.id)))
+    .limit(1)
+
+  if (!usuario || !usuario.activo) return null
+  return usuario
+}
+
+export type SesionViva = {
+  user: { id: string; email: string; rol: Rol }
+}
+
+/**
+ * Devuelve la sesion o manda a la pantalla de ingreso.
+ *
+ * El rol sale de la base, no del token: si un admin se lo cambia a alguien,
+ * tiene que valer en el pedido siguiente y no dentro de treinta dias.
+ */
+export async function sesionRequerida(): Promise<SesionViva> {
+  const usuario = await usuarioDeLaSesion()
+  if (!usuario) redirect('/ingresar?sesion=vencida')
+
+  return { user: { id: String(usuario.id), email: usuario.email, rol: usuario.rol } }
 }
 
 /**
@@ -63,6 +101,6 @@ export async function accesoDeImpresion(ruta: string, token: string | undefined)
   const { tokenDeImpresionValido } = await import('@/lib/token-impresion')
   if (tokenDeImpresionValido(token, ruta)) return
 
-  const sesion = await auth()
-  if (!sesion?.user) redirect('/ingresar')
+  // Mismo criterio que el resto: un usuario dado de baja tampoco imprime.
+  if (!(await usuarioDeLaSesion())) redirect('/ingresar?sesion=vencida')
 }

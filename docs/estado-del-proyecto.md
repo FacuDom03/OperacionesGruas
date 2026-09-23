@@ -1,8 +1,10 @@
 # Estado del proyecto
 
-Última actualización: 22/09/2026
+Última actualización: 23/09/2026
 
 Este archivo dice qué está hecho y qué sigue. Actualizalo cuando termines una fase.
+
+La lista de lo que falta, priorizada, está en `docs/auditoria.md`.
 
 ## Contexto
 
@@ -189,6 +191,22 @@ tilde. Las tres cosas fallaban antes y ninguna se veía en el HTML.
 **Visto una vez, sin poder reproducir:** un error de hidratación de React
 (#418) en `/maestros/equipos` durante un barrido. No volvió a aparecer en 6
 intentos ni en los barridos siguientes. Queda anotado.
+
+### Sesion y ingreso (23/09)
+
+- **Un usuario dado de baja seguia navegando.** La sesion es un JWT y no se
+  revalidaba nunca contra la base: el token seguia sirviendo hasta vencer, y
+  cambiarle el rol a alguien tampoco tomaba efecto. Ahora `usuarioDeLaSesion()`
+  pregunta por la fila en cada pedido, el rol sale de ahi y no del token, y la
+  sesion dura ocho horas en vez de treinta dias.
+- La pantalla de ingreso mira la base y no solo el token: si no, un usuario
+  dado de baja rebotaba infinito entre `/ingresar` y el tablero.
+- **Cinco fallos seguidos bloquean el correo quince minutos.** En memoria, como
+  los tokens de impresion: con varias instancias hay que pasarlo a la base.
+- Si el correo no existe se calcula igual un hash de descarte, para que tarde
+  lo mismo que una verificacion de verdad. Antes, la respuesta inmediata
+  dejaba averiguar que correos estaban dados de alta.
+- `scripts/probar-sesion.mjs` cubre las dos cosas.
 
 ## Lo que falta
 

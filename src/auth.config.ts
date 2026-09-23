@@ -29,7 +29,11 @@ const PUBLICAS = [
  * ningun proveedor: los proveedores se agregan del lado del servidor.
  */
 export const authConfig = {
-  session: { strategy: 'jwt' },
+  // Ocho horas: es un turno de trabajo. El rol y el alta se revalidan igual en
+  // cada pedido contra la base (ver usuarioDeLaSesion), pero un token que dura
+  // treinta dias es mucho tiempo para algo que puede quedar en una maquina
+  // compartida de la oficina.
+  session: { strategy: 'jwt', maxAge: 8 * 60 * 60 },
   pages: { signIn: '/ingresar' },
   providers: [],
   callbacks: {

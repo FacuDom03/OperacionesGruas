@@ -1,18 +1,21 @@
 import { redirect } from 'next/navigation'
 import { AuthError } from 'next-auth'
-import { auth, signIn } from '@/auth'
+import { signIn } from '@/auth'
+import { usuarioDeLaSesion } from '@/lib/permisos'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Ingresar({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; sesion?: string }>
 }) {
-  const sesion = await auth()
-  if (sesion?.user) redirect('/')
+  // Se pregunta por la base y no solo por el token: si al usuario lo dieron de
+  // baja, el token le sigue sirviendo y mandarlo al tablero seria un rebote
+  // infinito entre esta pantalla y la otra.
+  if (await usuarioDeLaSesion()) redirect('/')
 
-  const { error } = await searchParams
+  const { error, sesion } = await searchParams
 
   async function entrar(datos: FormData) {
     'use server'
@@ -25,7 +28,10 @@ export default async function Ingresar({
       })
     } catch (e) {
       // signIn lanza un redirect cuando sale bien: ese hay que dejarlo pasar.
-      if (e instanceof AuthError) redirect('/ingresar?error=1')
+      if (e instanceof AuthError) {
+        const codigo = (e as { code?: string }).code
+        redirect(codigo === 'demasiados' ? '/ingresar?error=demasiados' : '/ingresar?error=1')
+      }
       throw e
     }
   }
@@ -61,9 +67,18 @@ export default async function Ingresar({
             />
           </div>
 
-          {error ? (
+          {error === 'demasiados' ? (
+            <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+              Demasiados intentos fallidos. Esperá unos minutos y probá de nuevo.
+            </p>
+          ) : error ? (
             <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
               Correo o contraseña incorrectos.
+            </p>
+          ) : sesion === 'vencida' ? (
+            <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              Tu sesión ya no vale. Puede que te hayan cambiado el rol o dado de baja.
+              Entrá de nuevo.
             </p>
           ) : null}
 
