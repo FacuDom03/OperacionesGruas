@@ -42,7 +42,13 @@ export async function pdfDeRuta(
     // Una pantalla de error de Next tambien se imprime: el PDF sale con 200,
     // empieza con %PDF- y adentro dice "Application error". Antes de armarlo
     // hay que mirar que se renderizo de verdad.
+    //
+    // Si la hoja se atajo sola, deja el motivo en data-error-de-hoja, que es
+    // mucho mas util que el texto generico de Next.
     const problema = await pagina.evaluate(() => {
+      const marcado = document.querySelector('[data-error-de-hoja]')
+      if (marcado) return marcado.getAttribute('data-error-de-hoja')
+
       const texto = document.body?.innerText ?? ''
       const roto = /Application error|server-side exception|No se pudo mostrar|This page could not be found/i
       return roto.test(texto) ? texto.slice(0, 300) : null

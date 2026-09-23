@@ -2,6 +2,7 @@ import { and, asc, eq, inArray } from 'drizzle-orm'
 import { db } from '@/db'
 import { empresas, equipos, salidas } from '@/db/schema'
 import { HojaDeSalida } from '@/components/hoja-salida'
+import { motivoDe } from '@/components/error-de-hoja'
 import { formatearFecha, formatearHora } from '@/lib/formato'
 import { datosDeSalida } from '@/lib/consultas-salidas'
 import { accesoDeImpresion } from '@/lib/permisos'
@@ -64,7 +65,7 @@ export default async function ImprimirDia({
       return { numero: s.numero, datos: await datosDeSalida(s.id) }
     } catch (error) {
       console.error(`[parte del dia] no se pudo armar la hoja de ${s.numero}:`, error)
-      return { numero: s.numero, datos: null, fallo: true as const }
+      return { numero: s.numero, datos: null, fallo: true as const, motivo: motivoDe(error) }
     }
   }))
 
@@ -123,9 +124,7 @@ export default async function ImprimirDia({
             <p className="mt-4 text-[11pt]">
               No se pudo armar esta hoja. El resto del parte está completo.
             </p>
-            <p className="mt-1 text-[9pt] text-black/60">
-              El motivo quedó en el log del servidor. Imprimila aparte desde la salida.
-            </p>
+            <p className="mt-1 text-[9pt] text-black/60">{hoja.motivo}</p>
           </main>
         )
       })}

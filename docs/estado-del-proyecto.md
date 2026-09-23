@@ -208,6 +208,24 @@ intentos ni en los barridos siguientes. Queda anotado.
   dejaba averiguar que correos estaban dados de alta.
 - `scripts/probar-sesion.mjs` cubre las dos cosas.
 
+### Las hojas de /print dicen por que fallan (23/09)
+
+Cuando una hoja no se puede armar, en vez de tirar renderiza el motivo en
+`data-error-de-hoja`. `pdfDeRuta` lee ese atributo y corta con **ese** texto,
+asi el que pidio el PDF lee "relation ... does not exist" en lugar de
+"respondio 500".
+
+Hacia falta porque en produccion React borra el mensaje de los errores del
+servidor: queda un digest que solo sirve si uno puede mirar el log del
+contenedor, y el que imprime no puede.
+
+`motivoDe()` recorre la cadena de `cause`: Drizzle envuelve el error del driver
+y el de arriba es el SQL entero, con cien columnas; el que dice que paso de
+verdad es el de mas adentro.
+
+El parte del dia muestra el motivo en la hoja que fallo pero **no** pone el
+marcador: una hoja rota no puede impedir que se imprima el resto.
+
 ### Busqueda de salidas (23/09)
 
 `/salidas/buscar`: por numero (entero o los ultimos digitos), cliente, OT,
