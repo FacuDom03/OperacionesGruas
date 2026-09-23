@@ -67,6 +67,7 @@ const rutas = [
   '/auditoria', '/auditoria?accion=alta', `/auditoria?desde=${HOY}&hasta=${HOY}`,
   '/herramientas', '/herramientas?donde=persona', '/herramientas?sinConfirmar=on',
   '/herramientas/nueva', '/herramientas/entregar',
+  '/salidas/buscar', '/salidas/buscar?q=GDU', '/salidas/buscar?q=zzz-nada',
 ]
 
 async function barrer(rotulo) {

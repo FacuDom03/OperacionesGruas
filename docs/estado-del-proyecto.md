@@ -208,6 +208,20 @@ intentos ni en los barridos siguientes. Queda anotado.
   dejaba averiguar que correos estaban dados de alta.
 - `scripts/probar-sesion.mjs` cubre las dos cosas.
 
+### Busqueda de salidas (23/09)
+
+`/salidas/buscar`: por numero (entero o los ultimos digitos), cliente, OT,
+remito, interno, patente, lugar de carga o descarga, observaciones y **apellido
+de quien fue** —esto ultimo con un EXISTS sobre `salida_personal`—, con rango de
+fechas, estado y el filtro de empresas de la cabecera. Paginada de a 50, de la
+mas nueva a la mas vieja.
+
+Sin filtros no consulta nada: mostrar media base por abrir la pantalla no le
+sirve a nadie y cuesta.
+
+Es `ILIKE` sobre varias columnas, sin indices de texto. Con unos miles de
+salidas al año va bien; si algun dia molesta, `pg_trgm`.
+
 ## Lo que falta
 
 ### El orden cambió: WhatsApp va último

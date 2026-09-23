@@ -95,6 +95,20 @@ Una salida **finalizada no se edita**. Si hay que corregirla, la reabre un
 administrador con **Reabrir (queda registrado)**, y esa reapertura queda en el
 registro de cambios con el nombre de quien la hizo.
 
+### Buscar una salida vieja
+
+El listado es del día. Para encontrar algo sin saber la fecha está el botón
+**Buscar**, arriba a la derecha.
+
+Se busca por lo que te acuerdes: el número (`SAL-2026-0873`, o solo `873`), el
+cliente, la OT, el remito, el interno de la unidad, la patente, un lugar de
+carga o descarga, o **el apellido de quien fue**. No distingue mayúsculas.
+
+Se puede acotar por **rango de fechas** y por **estado**. Y respeta la empresa
+que tengas elegida arriba: si estás mirando solo West Group, busca solo ahí.
+
+Los resultados vienen del más nuevo al más viejo, de a 50.
+
 ### Imprimir
 
 - **PDF de la salida**: una hoja A4, con el mismo formato del Excel y las tres

@@ -40,25 +40,23 @@ orden. Se actualiza cuando se tacha algo.
 
 ---
 
+- **No se podían buscar las salidas.** El listado era solo por día. Ahora está
+  `/salidas/buscar`: por número, cliente, OT, remito, unidad, patente, lugar o
+  apellido de quien fue, con rango de fechas y estado, y respetando el filtro
+  de empresas. Era lo que el capítulo 1 del spec le reprochaba al Excel.
+
+---
+
 ## Lo que queda, por orden
 
-### 1. Buscar salidas 🟠
-
-El listado es **solo por día**. No hay forma de encontrar `SAL-2026-0873`, ni
-todo lo de un cliente en un mes, ni buscar por OT o remito, sin saber la fecha.
-
-El capítulo 1 del spec pone «No hay historial consultable ni búsqueda» como
-defecto del Excel. El historial está; la búsqueda no. Es lo que más se va a
-notar en el uso diario.
-
-### 2. Lint y CI 🟠
+### 1. Lint y CI 🟠
 
 - ESLint **no está configurado** y el build lo ignora (`ignoreDuringBuilds`).
   Lo único que corre es `tsc`.
 - Las 14 pruebas corren si alguien se acuerda. Un GitHub Action que levante
   Postgres, haga el build y corra la suite cierra el ciclo.
 
-### 3. WhatsApp 🟡
+### 2. WhatsApp 🟡
 
 Última fase por decisión del 16/09. Depende de la plantilla aprobada por Meta y
 de los teléfonos del personal, que no están cargados.
@@ -67,17 +65,20 @@ Del lado de la app falta: el POST al webhook de n8n, `/api/envios/[wamid]` para
 los estados, y el botón en la salida. El link de confirmación de herramientas
 usa el mismo camino.
 
-### 4. Cosas que van a molestar cuando crezca 🟡
+### 3. Cosas que van a molestar cuando crezca 🟡
 
 - **`auditoria` no se purga y no tiene índice por `created_at`**, que es por
   donde ordena la pantalla. Con 200 filas no se nota; con 200.000 sí.
 - **El parte del día hace ~6 consultas por salida.** Medido: 45 salidas son
   578 ms de render y 2,7 s de PDF. Hoy alcanza.
 - **Los PDF de `PDF_STORAGE_PATH` no se limpian nunca.**
+- **La búsqueda hace `ILIKE` sobre varias columnas y no usa índices.** Con
+  unos miles de salidas al año no se nota; si algún día molesta, la salida es
+  un índice de texto (`pg_trgm` o una columna `tsvector`).
 - **El token de impresión se marca usado en memoria**: con dos instancias, los
   PDF fallarían salteado.
 
-### 5. Menores 🟢
+### 4. Menores 🟢
 
 - La comparación de `x-api-key` no es de tiempo constante.
 - `uso_livianos` no tiene único por (fecha, unidad): una unidad puede tener dos

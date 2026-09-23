@@ -74,6 +74,8 @@ export default async function Salidas({
           <>
             <NavegadorFecha fecha={fecha} hoy={hoy()} ruta="/salidas" />
 
+            <BotonLink href="/salidas/buscar" estilo="blanco">Buscar</BotonLink>
+
             <BotonLink href={`/api/pdf/dia/${fecha}${elegidas ? `?empresas=${elegidas.join(',')}` : ''}`} estilo="blanco" nuevaPestania>
               PDF del día
             </BotonLink>
