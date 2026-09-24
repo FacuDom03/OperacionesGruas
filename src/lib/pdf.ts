@@ -39,6 +39,13 @@ export async function pdfDeRuta(
       throw new Error(`La hoja ${ruta} respondio ${respuesta?.status() ?? 'sin respuesta'}.`)
     }
 
+    // Si el token no sirvio, /print manda a /ingresar y el navegador sigue el
+    // redirect: sin esto, el PDF saldria siendo una foto de la pantalla de
+    // ingreso, con 200 y todo.
+    if (pagina.url().includes('/ingresar')) {
+      throw new Error(`La hoja ${ruta} pidio sesion: el token de impresion no sirvio. Revisa AUTH_SECRET.`)
+    }
+
     // Una pantalla de error de Next tambien se imprime: el PDF sale con 200,
     // empieza con %PDF- y adentro dice "Application error". Antes de armarlo
     // hay que mirar que se renderizo de verdad.

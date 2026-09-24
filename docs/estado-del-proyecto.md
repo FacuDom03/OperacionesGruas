@@ -208,6 +208,24 @@ intentos ni en los barridos siguientes. Queda anotado.
   dejaba averiguar que correos estaban dados de alta.
 - `scripts/probar-sesion.mjs` cubre las dos cosas.
 
+### Una migracion que no se aplica ya no deja arrancar (24/09)
+
+`instrumentation-node.ts` tiraba el error y Next lo escribia como "error
+loading instrumentation hook" **y seguia sirviendo igual**, con el esquema
+viejo. Eso deja la app a medias de la peor manera: casi todo anda y unas pocas
+pantallas fallan sueltas, sin que nada relacione una cosa con la otra. Fue
+exactamente el sintoma de los PDF de salida individual: el parte del dia salia
+(aisla cada hoja) y la hoja suelta tiraba 500.
+
+Ahora reintenta cinco veces —la base puede tardar en aceptar conexiones al
+arrancar junto con el contenedor— y despues corta el proceso con
+`process.exit(1)`. El contenedor no levanta y el motivo queda en la primera
+linea del log, que es mucho mas facil de ver que una pantalla que falla sola.
+
+Ademas, `pdfDeRuta` corta si termina en `/ingresar`: si el token de impresion
+no sirve, el navegador sigue el redirect y el PDF saldria siendo una foto de la
+pantalla de ingreso, con 200 y todo.
+
 ### Las hojas de /print dicen por que fallan (23/09)
 
 Cuando una hoja no se puede armar, en vez de tirar renderiza el motivo en

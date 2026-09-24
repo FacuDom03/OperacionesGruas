@@ -35,6 +35,7 @@ No cambies ninguna de estas elecciones sin preguntar.
 - El esquema vive en `src/db/schema.ts` y es la única fuente de verdad. Debe coincidir con el capítulo 4 de `docs/spec.md`.
 - Migraciones con `drizzle-kit generate`. Los SQL quedan versionados en `drizzle/`.
 - Las migraciones se aplican solas al arrancar el servidor, desde `src/instrumentation.ts`. Nunca a mano en producción.
+- **Si una migración no se puede aplicar, el proceso se corta.** Servir con el esquema viejo deja la app a medias: casi todo anda y unas pocas pantallas fallan sueltas. Es preferible que el contenedor no levante.
 - **Nunca toques la base de datos de n8n.** La app usa su propia base (`central_operativa`) aunque comparta el servidor de Postgres.
 - Toda escritura que modifique una salida, un uso de liviano o un maestro deja registro en `auditoria`.
 
